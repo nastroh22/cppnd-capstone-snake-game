@@ -81,7 +81,6 @@ void Renderer::Render(Snake const snake, const Food *food) { // SDL_Point const 
   // dstRect.y = y_position;  // update this each frame to move texture vertically
   // dstRect.w = width;       // width of your texture (can query surface or texture)
   // dstRect.h = height;      // height of your texture
-  std::cout << food->get_texture() << " is null ?" << std::endl;
   SDL_RenderCopy(sdl_renderer, food->get_texture(), nullptr, &block); // "block" is already an SDL_rect
 
 

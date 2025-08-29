@@ -45,7 +45,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update();
-    std::cout << "here " << std::endl;
     renderer.Render(snake, food);
 
     frame_end = SDL_GetTicks();
@@ -115,6 +114,25 @@ void Game::Update() {
     snake.GrowBody();
     snake.speed += 0.02;
   }
+}
+
+std::string Game::GetPlayerName(){
+    std::string playerName;
+
+    std::cout << "====================================\n";
+    std::cout << "         Snake-GAME TERMINAL MENU   \n";
+    std::cout << "====================================\n";
+    std::cout << "Enter Your Name and Hit Enter to Play:\n> ";
+
+    std::getline(std::cin, playerName);
+
+    while (playerName.empty()) {
+        std::cout << "Name cannot be empty. Please enter your name:\n> ";
+        std::getline(std::cin, playerName);
+    }
+
+    std::cout << "\nWelcome, " << playerName << "! Starting the game...\n";
+    return playerName;
 }
 
 int Game::GetScore() const { return score; }
