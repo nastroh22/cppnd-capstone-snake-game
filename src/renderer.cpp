@@ -31,14 +31,30 @@ Renderer::Renderer(const std::size_t screen_width,
     std::cerr << "Renderer could not be created.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
   }
+
+  // create a texture
+  SDL_Surface *surface = SDL_LoadBMP("../assets/pactiles/banana.bmp");
+  if (!surface) {
+    std::cerr << "Failed to load BMP: " << SDL_GetError() << std::endl;
+    // Handle error or exit
+  }
+  sdl_texture = SDL_CreateTextureFromSurface(sdl_renderer, surface);
+  SDL_FreeSurface(surface);
 }
 
 Renderer::~Renderer() {
   SDL_DestroyWindow(sdl_window);
+
+  // free texture resource
+  if (sdl_texture) {
+    SDL_DestroyTexture(sdl_texture);
+    sdl_texture = nullptr;
+  }
+
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food) {
+void Renderer::Render(Snake const snake, const Food *food) { // SDL_Point const &food
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -48,10 +64,26 @@ void Renderer::Render(Snake const snake, SDL_Point const &food) {
   SDL_RenderClear(sdl_renderer);
 
   // Render food
-  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
-  block.x = food.x * block.w;
-  block.y = food.y * block.h;
-  SDL_RenderFillRect(sdl_renderer, &block);
+  // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
+  block.x = food->get_x() * block.w;
+  block.y = food->get_y() * block.h;
+  // std::cout << "Food position: (" << food.x << ", " << food.y << ")\n";
+  // SDL_RenderFillRect(sdl_renderer, &block);
+
+  // Step 1: Try to Render Png Files instead
+  // SDL_Surface *surface = IMG_LOAD("assets/pactiles/dot.bmp");
+  // SDL_Surface *surface SDL_BMPtoSurface("assets/pactiles/dot.bmp");
+  // NOTE: TODO: install and link SDL_image to load PNGs
+  //bmp version:
+
+  // SDL_Rect dstRect;
+  // dstRect.x = x_position;  // update this each frame to move texture horizontally
+  // dstRect.y = y_position;  // update this each frame to move texture vertically
+  // dstRect.w = width;       // width of your texture (can query surface or texture)
+  // dstRect.h = height;      // height of your texture
+  std::cout << food->get_texture() << " is null ?" << std::endl;
+  SDL_RenderCopy(sdl_renderer, food->get_texture(), nullptr, &block); // "block" is already an SDL_rect
+
 
   // Render snake's body
   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);

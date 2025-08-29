@@ -78,3 +78,74 @@ https://wiki.libsdl.org/SDL3/APIByCategory
 /Library/Developer/CommandLineTools/usr/include
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
 ```
+
+
+
+# Rubric Items & New Features:
+
+## OOP
+Mostly practicing oop concepts with the `Food` abstract type and it's derived classes.
+
+- Polymorphism:
+    - Each `Food` type has custom `Consume` behavior, for example:
+        - Banana is worth +10 (and expires faster)
+        - Cherries are worth +5
+        - Blinking Dot's switch game state to "power up mode" 
+
+    - Constructors
+
+- Memory Management 
+    - Map object has ownership of Foods (which are inherently tied to the position in pacman)
+    - `.erase` cleans up resources automatically by defining foods as a vector of unique_pointers, calling the destructor on the smart pointer, hence, on the object itself.
+
+Implementation of Food Class checks off following Rubric items:
+    - [ ] *polymorphism*
+    - [ ] *something else*
+
+
+## Next Feature: Menu
+
+- Menu will display high scores (possible support scrolling)
+    
+
+- Menu will have a "play" button
+
+- Menu will have an exit button
+
+- Character options (see next feature)
+
+
+
+## Next Feature: Character Sprites
+- different head designs (maybe use nintendo characters idk)
+- different colors
+
+
+## Next Feature: 
+
+
+
+## Snake Game Rule Modifications:
+
+Let's make it more interesting with different foods
+
+- bomb: instant loss
+- star: like super mario, invincibility against ghost (shrink snake maybe)
+    - moving target that times out, if you get it the whole field populates with food
+    - you get more speed and you're allowed to phase through walls (which is already allowed but thinking to change that)
+
+- green potion: shrink snake without affecting score
+- blue potion: spawns a new ghost
+
+- update rules so that we can't move through boundaries?
+
+
+
+
+## Notes on Next Steps (PacMan)
+
+- I/O : map parser (likely as part of Map Object which also handles the above food layout)
+    - Map Object will also be responsible for communicating with the game AI for defining where to place barriers etc. necessary for A*
+
+
+

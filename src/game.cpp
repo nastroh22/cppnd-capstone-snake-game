@@ -1,12 +1,29 @@
 #include "game.h"
 #include <iostream>
 #include "SDL.h"
+#include "food.h"
+#include <memory>
+
+
+// Note: possible use case of a template:
+template <typename... FoodTypes>
+void AddFoods(std::vector<std::unique_ptr<Food>>& foods) {
+    (foods.emplace_back(std::make_unique<FoodTypes>()), ...);
+}
+// NOTE: another pattern (for unequal number of food types is iterate over number of each type, emplacing in constructor)
+// Another nice pattern would be to use a shared pointer on the surface 
+// then render a bunch of dots using a shared resource (possibly for pacman game)
+
+
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
+      random_food(0, 1),
       random_w(0, static_cast<int>(grid_width - 1)),
-      random_h(0, static_cast<int>(grid_height - 1)) {
+      random_h(0, static_cast<int>(grid_height - 1)){
+
+  AddFoods<Banana, Cherries, Dot>(foods);
   PlaceFood();
 }
 
@@ -19,12 +36,16 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
+  // Init Unique Textures (could move to main perhaps)
+  for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());}
+
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update();
+    std::cout << "here " << std::endl;
     renderer.Render(snake, food);
 
     frame_end = SDL_GetTicks();
@@ -57,9 +78,22 @@ void Game::PlaceFood() {
     y = random_h(engine);
     // Check that the location is not occupied by a snake item before placing
     // food.
+
+    // NOTE: add random food selection step
+    float rand = random_food(engine);
+    int food_index;
+    if (rand > 0.66) {
+        food_index = 0; // Banana
+    } else if (rand > 0.33) {
+        food_index = 1; // Cherry
+    } else {
+        food_index = 2; // Dot
+    }
+    food = foods[food_index].get();
     if (!snake.SnakeCell(x, y)) {
-      food.x = x;
-      food.y = y;
+      // food->position.x = x;
+      // food->position.y = y;
+      food->set_position(x, y);
       return;
     }
   }
@@ -74,7 +108,7 @@ void Game::Update() {
   int new_y = static_cast<int>(snake.head_y);
 
   // Check if there's food over here
-  if (food.x == new_x && food.y == new_y) {
+  if (food->get_x() == new_x && food->get_y() == new_y) {
     score++;
     PlaceFood();
     // Grow snake and increase speed.
