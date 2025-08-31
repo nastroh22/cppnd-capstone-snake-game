@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "SDL.h"
+#include "SDL_ttf.h"
 #include "snake.h"
 #include "food.h"
 // #include <SDL2/SDL_image.h>
