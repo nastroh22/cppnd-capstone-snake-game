@@ -1,8 +1,11 @@
+ss 32
+Bob for now 19
 mario 17
 Bob 14
 Nick 12
 name 3
 Nick 2
 ok 1
+Nick 1
 Nick 0
 horace 0
