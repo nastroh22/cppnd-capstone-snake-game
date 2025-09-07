@@ -5,27 +5,64 @@
 #include "scoreio.h"
 #include "menu.h"
 #include "constants.h"
+#include <thread>
+#include <chrono>
+
+enum class GameState { MENU, PLAYING, EXIT };
 
 int main() {
 
-  // later : update project paths: ScoreIO::PROJECT_PAT
+  GameState state = GameState::MENU;
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
-  MenuManager menu(renderer.get()); // todo rename get() to be more descriptive
+  MenuManager menu(renderer.get());
   Controller controller;
-  Game game(kGridWidth, kGridHeight);
-  bool start = menu.display();
-  std::cout << "Start ? " << start << std::endl;
-  if (!start){ return 0;} // exit game logic }
+  std::string Player = "Player1";
+  bool start = false;
 
-  // std::string Player = game.GetPlayerName();
-  std::string Player = "Bob";
+  
+  while (state != GameState::EXIT) {
+    switch (state) {
+      
+      case GameState::MENU: {
+        std::cout << "Displaying Menu " << std::endl;
+        start = menu.display();
+        Player = menu.getPlayerName();
+        std::cout << "Start ? : " << start << std::endl;
+        if (start){ 
+            state = GameState::PLAYING;
+            std::cout << "Player Name: " << Player << std::endl;
+         } else {
+             std::cout << "Should Exit : " << std::endl;
+            state = GameState::EXIT;
+        }
+        break;
+      }
 
-  game.Run(controller, renderer, kMsPerFrame);
+      case GameState::PLAYING: {
+        std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        {
+          Game game(kGridWidth, kGridHeight);
+          game.Run(controller, renderer, kMsPerFrame);
+          ScoreIO::Entry new_entry{Player, game.GetScore()};
+          ScoreIO::save_score(new_entry);
+        }
+        state = GameState::MENU;
+        std::cout << "Play again? " << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        break;
+      }
+      
+      case GameState::EXIT:
+        state = GameState::EXIT;
+        break;
+      
+      default:
+        state = GameState::EXIT;
+
+    }
+  }
+
   std::cout << "Game has terminated successfully!\n";
-  std::cout << "Score: " << game.GetScore() << "\n";
-  std::cout << "Size: " << game.GetSize() << "\n";
-  ScoreIO::Entry new_entry{Player, game.GetScore()}; // NOTE: names can't contain spaces bug (TODO fix)
-  ScoreIO::save_score(new_entry);
   ScoreIO::print_scores(); // return to menu logic
 
   return 0;

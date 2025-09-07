@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm> 
 
-//***************************** Helpe ***************************************** */
+//***************************** Helper ***************************************** */
 
 //TODO: Make this polymorphic class function  (Button derives from Window)
 static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
@@ -28,13 +28,30 @@ static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL
     SDL_RenderFillRect(renderer, &right);
 }
 
+std::string strip(const std::string& str) {
+    size_t start = 0;
+    size_t end = str.length();
+
+    // Find first non-whitespace character
+    while (start < end && std::isspace(static_cast<unsigned char>(str[start]))) {
+        ++start;
+    }
+
+    // Find last non-whitespace character
+    while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1]))) {
+        --end;
+    }
+
+    return str.substr(start, end - start);
+}
+
 // ***************************** Text Defs  *********************************** //
 Text::Text(
     SDL_Renderer *renderer,
     const std::string &font_path,
     int font_size,
     const std::string &message_text,
-    SDL_Color color)
+    SDL_Color color) : _color(color)
 {
     _text_texture = loadFont(renderer, font_path, font_size, message_text, color);
     if (!_text_texture) {
@@ -48,6 +65,19 @@ void Text::display(SDL_Renderer *renderer, int x, int y) const
 {
     _text_rect.x = x;
     _text_rect.y = y;
+    SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
+    // std::cout << "Displayed Text" << message << std::endl;
+}
+
+void Text::displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message) {
+    _text_rect.x = x;
+    _text_rect.y = y;
+    if (_text_texture) {
+        SDL_DestroyTexture(_text_texture);
+        _text_texture = nullptr;
+    }
+    _text_texture = loadFont(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, message, _color); // TODO - store color and font_size
+    SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
     SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
     // std::cout << "Displayed Text" << message << std::endl;
 }
@@ -93,14 +123,23 @@ void Window::Render(SDL_Renderer* renderer){
         _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
         _windowRect.y + 10 // some padding from top
     );
+}
 
+void InputWindow::Render(SDL_Renderer* renderer){
+    SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
+    SDL_RenderFillRect(renderer, &_windowRect);
+    drawBorder(renderer, _windowRect, 1, _borderColor); // thickness of 2
     // render dynamic text if applicable (NOTE: need to clean this text)
     // Better Approach is interior window "DynamicText" object that can be updated or rather "InputWindow"
-    if (_playerInput) {
-        Text playerText(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, *_playerInput, DEFAULT_TEXT_COLOR);
-        playerText.display(renderer, 
+    // std::cout << "Check Width" << _windowRect.x + 20 << " " << _windowRect.y + 60 << std::endl; //debug
+    if ((_playerInput) && !_playerInput->empty()) {
+        // std::cout << "Should Render " << *_playerInput << std::endl; //debug
+        // std::cout <<  _windowRect.x << std::endl;
+        std::cout << _playerInput->empty() << std::endl;
+        _inputText.displayDynamic(renderer, 
             _windowRect.x + 20, // some padding from left
-            _windowRect.y + 60 // below title
+            _windowRect.y + 20, // below title
+            *_playerInput
         );
     }
 }
@@ -204,10 +243,17 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
     _buttons.reserve(2);
     _buttons.emplace_back(std::make_unique<BackButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
     _buttons.emplace_back(std::make_unique<StartButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
-    _window = std::make_unique<Window>(renderer, "Enter Player Name: ", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION, &_player_name);
-    // _text_entry = std::make_unique<Window>(renderer, "Enter Player Name", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
+    _window = std::make_unique<Window>(renderer, "Enter Player Name: ", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
+    _textEntry = std::make_unique<InputWindow>(renderer, NAME_WIN_COLOR, NAME_WIN_BORDER_COLOR, NAME_WIN_POSITION, &_playerName);
 }
-// SDL_Renderer *renderer
+void PlayerEntryMenu::Render() {
+    Menu::Render(); // render base window and buttons
+    _textEntry->Render(_renderer); // render input window on top
+}
+
+std::string PlayerEntryMenu::getPlayerName() const {
+    return strip(_playerName); // remove leading/trailing whitespace
+}
 
 
 // TODO: clean this, right now just wrapping queryButtons()
@@ -217,19 +263,19 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
 
 
 MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
-    
+    std::cout << "Getting Name Input: " << _playerName << std::endl; //debug
     if (event.type == SDL_QUIT) {
         // Handle quit
     }
     else if (event.type == SDL_TEXTINPUT) {
         // Append event.text.text to your string buffer
-        _player_name += event.text.text;
-        std::cout << "Keystroke: " << _player_name << std::endl;
+        _playerName += event.text.text;
+        std::cout << "Keystroke: " << _playerName << std::endl;
     }
     else if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym == SDLK_BACKSPACE && _player_name.size() > 0) {
-            _player_name.pop_back();  // Handle backspace
-            std::cout << "After backspace: " << _player_name << std::endl;
+        if (event.key.keysym.sym == SDLK_BACKSPACE && _playerName.size() > 0) {
+            _playerName.pop_back();  // Handle backspace
+            std::cout << "After backspace: " << _playerName << std::endl;
         }
     }
     return MenuState::NONE; // or some other default state

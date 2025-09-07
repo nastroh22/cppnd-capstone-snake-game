@@ -7,11 +7,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
-#include "constants.h"
-
-
-//Copies of Screen Constants 
-
+#include "constants.h" //include Screen Dimensions
 
 
 // see: https://www.color-hex.com/color-palette/59812 (good resource on rgb colors)
@@ -27,24 +23,29 @@ constexpr SDL_Color BLACK = {0, 0, 0, 255};
 constexpr SDL_Color GREY = {192, 197, 206, 200};
 constexpr SDL_Color RETRO_PEACH = {255,226,138,250};
 constexpr SDL_Color BRICK = {191,0,0,255};
+constexpr SDL_Color MINT = {111,203,159,255};
+constexpr SDL_Color LEMON = {255,244,79,255};
+constexpr SDL_Color AVOCADO = {85, 131, 3, 255};
+constexpr SDL_Color SIENNA = {212, 140, 87,255};
+constexpr SDL_Color DARTMOUTH = {0, 121, 68, 255};
+constexpr SDL_Color RUST = {185, 90, 17, 255};
 
 
 // Text Colors
 constexpr SDL_Color DEFAULT_TEXT_COLOR = WHITE;
 constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE;
-constexpr SDL_Color TITLE_COLOR = RETRO_PEACH;
+constexpr SDL_Color TITLE_COLOR = LEMON;
 
 // Button Backgrounds
-constexpr SDL_Color PLAY_BUTTON_COLOR = OLIVE;
-constexpr SDL_Color SCORE_BUTTON_COLOR = ARMY;
-constexpr SDL_Color QUIT_BUTTON_COLOR = RETRO_PEACH;
-constexpr SDL_Color BACK_BUTTON_COLOR = MOSS;
+constexpr SDL_Color PLAY_BUTTON_COLOR = ARMY;
+constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
+constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
+constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
+constexpr SDL_Color BACK_BUTTON_COLOR = RUST;
+constexpr SDL_Color START_BUTTON_COLOR = MOSS;
 constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
-constexpr SDL_Color HOVER_BORDER_COLOR = TAN; // for hover effect
-
+constexpr SDL_Color HOVER_BORDER_COLOR = LEMON; // for hover effect
 constexpr SDL_Color BACKGROUND_COLOR = BLACK;
-constexpr SDL_Color WINDOW_COLOR = FOREST;
-constexpr SDL_Color WINBORDER_COLOR = MOSS;
 
 //Window Positions
 static int border_width = static_cast<int>(.15*kScreenWidth);
@@ -55,17 +56,39 @@ const SDL_Rect WIN_POSITION = {
     static_cast<int>(kScreenWidth - 2*border_width), 
     static_cast<int>(kScreenHeight-2*border_height)
 };
+constexpr SDL_Color WINDOW_COLOR = FOREST;
+constexpr SDL_Color WINBORDER_COLOR = MOSS;
 
+// const SDL_Rect NAME_WIN_POSITION= {
+//     static_cast<int>(.05*kScreenWidth),
+//     static_cast<int>(.10*kScreenHeight),
+//     static_cast<int>(.90*kScreenWidth),
+//     static_cast<int>(.15*kScreenHeight)
+// };
+const SDL_Rect NAME_WIN_POSITION = {
+    static_cast<int>(1.2*border_width), 
+    static_cast<int>(2*border_height),
+    static_cast<int>(kScreenWidth - 2.4*border_width),
+    80
+};
+constexpr SDL_Color NAME_WIN_BORDER_COLOR = MINT;
+constexpr SDL_Color NAME_WIN_COLOR = WHITE;
+constexpr SDL_Color NAME_WIN_TEXT_COLOR = BLACK;
 
 // Main Button Positions 
-constexpr SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};
+const SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};  // x,y,w,h
 constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75};  // x,y,w,h
 constexpr SDL_Rect SCORE_BUTTON_RECT = {220, 350, 200, 75};
 constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
 
 
-// Score Menu Positions
-constexpr SDL_Rect BACK_BUTTON_RECT = {220, 250, 200, 75};
+// Score Menu Constants
+constexpr SDL_Rect BACK_BUTTON_RECT = {220, 350, 200, 75};
+
+
+// Start Menu Constants
+constexpr SDL_Rect START_BUTTON_RECT = {220, 250, 200, 75};
+const std::string DEFAULT_PLAYER_NAME = "Player1";
 
 // Character Menu Positions
 // constexpr SDL_Rect CHARACTER_BUTTON_RECT = {220, 350, 200, 75};
@@ -88,13 +111,16 @@ enum class MenuState {
 
 // Generic Text Object, based on youtube tutorial. Nice pattern, reusable for buttons.
 class Text {
+    SDL_Color _color = DEFAULT_TEXT_COLOR; // default color
     public:
         Text(SDL_Renderer *renderer,const std::string &font_path, int font_size, const std::string &message_text, SDL_Color color);
         SDL_Texture *loadFont(SDL_Renderer *renderer,const std::string &font_path, int font_size, const std::string &message_text, SDL_Color& color);
         void display(SDL_Renderer *renderer, int x, int y) const;
+        void displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message);
         ~Text(){ SDL_DestroyTexture(_text_texture); }; //free textures
         int getWidth() const { return _text_rect.w;}
         int getHeight() const { return _text_rect.h;}
+
     
     private:
         SDL_Texture *_text_texture;
@@ -108,22 +134,45 @@ class Window {
         SDL_Color _windowColor; // for button color
         SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // could make customizable
         Text _title;
-        const std::string* _playerInput = nullptr; // for text entry window
         // Text _content; // could be vector of texts for multiple lines
     
     public:
-        Window(SDL_Renderer* renderer, const std::string& title, SDL_Color win_color, SDL_Color border_color ,SDL_Rect rect, const std::string* dynamic = nullptr) :
-            _windowRect(rect), _windowColor(win_color), _borderColor(border_color), _playerInput(dynamic),
+        Window(SDL_Renderer* renderer, const std::string& title, SDL_Color win_color, SDL_Color border_color, SDL_Rect rect) :
+            _windowRect(rect), _windowColor(win_color), _borderColor(border_color),
             _title(renderer, "../assets/fonts/comic_sans_ms.ttf", 32, title, TITLE_COLOR)
             {};
         
-        void Render(SDL_Renderer* renderer);
+        void virtual Render(SDL_Renderer* renderer);
         // void drawBorder(SDL_renderer* renderer, int thickness);
 
         ~Window() = default; // will call _text destructor by default
 };
 
+class InputWindow : public Window {
+    const std::string* _playerInput; // for text entry window
+    Text _inputText;
+    public:
+        InputWindow(SDL_Renderer* renderer, SDL_Color win_color, SDL_Color border_color, SDL_Rect rect, const std::string* dynamic) :
+            Window(renderer, "", win_color, border_color, rect),
+            _playerInput(dynamic),
+             _inputText(
+                renderer,
+                "../assets/fonts/comic_sans_ms.ttf", 
+                28, 
+                dynamic ? *dynamic : "", // avoids null deref
+                NAME_WIN_TEXT_COLOR)
+            {
+                if (!dynamic) {
+                    std::cerr << "Warning: InputWindow initialized with null player input string pointer." << std::endl;
+                }
+            };
 
+        void Render(SDL_Renderer* renderer) override;
+        // void Render(SDL_Renderer* renderer) override; // could override to add cursor
+        ~InputWindow() = default; // will call _text destructor by default
+};
+
+// TODO: Possibly Inherit Button From Window 
 // Base Button Type
 class Button {
 protected:
@@ -167,6 +216,8 @@ public:
     void printLabel() const { std::cout << "Button Label: " << label << std::endl; }
 };
 
+
+
 // Button Types
 class PlayButton : public Button {
 public: // TODo: Rename the Top Menu Button to "Start"
@@ -192,7 +243,7 @@ public:
 class CharacterButton : public Button {
 public:
     CharacterButton(SDL_Renderer* renderer)
-        : Button(renderer, MenuState::CHARACTER_MENU, TAN, CHAR_BUTTON_RECT, "Characters") {}
+        : Button(renderer, MenuState::CHARACTER_MENU, CHAR_BUTTON_COLOR, CHAR_BUTTON_RECT, "Characters") {}
 };
 
 class BackButton : public Button {
@@ -204,8 +255,10 @@ public:
 class StartButton : public Button {
 public:
     StartButton(SDL_Renderer* renderer)
-        : Button(renderer, MenuState::PLAY, BACK_BUTTON_COLOR, QUIT_BUTTON_RECT, "Start") {}
+        : Button(renderer, MenuState::PLAY, START_BUTTON_COLOR, START_BUTTON_RECT, "Start") {}
 };
+
+
 
 // Base Menu Type
 class Menu {
@@ -251,12 +304,14 @@ class PlayerEntryMenu : public Menu {
     public:
     PlayerEntryMenu(SDL_Renderer* renderer);
     ~PlayerEntryMenu() = default;
-    std::string getPlayerName() const override { return _player_name; };
+    std::string getPlayerName() const override ;
     MenuState getNameInput(const SDL_Event& e) override;
+    void Render() override;
     // MenuState queryButtons(const SDL_Event& e) override { return getNameInput(e);};
 
     private:
-    std::string _player_name;
+    std::string _playerName = DEFAULT_PLAYER_NAME; // default name
+    std::unique_ptr<InputWindow> _textEntry; // automate free textures
     // Window _text_entry;
 };
 
@@ -276,6 +331,7 @@ class MenuManager {
     Menu* _currentMenu = nullptr;
     Menu* _prevMenu = nullptr; 
     MenuState _state = MenuState::MAIN_MENU;
+    std::string _playerName = "Player1"; // default name
 
     //TODO: store _prev
 
@@ -293,6 +349,7 @@ class MenuManager {
 
     };
     ~MenuManager() = default; //TODO any unique logic needed here?
+    std::string getPlayerName() const { return _playerName; }
 
     void switchMenu() {
 
@@ -313,15 +370,14 @@ class MenuManager {
                 // _currentMenu = playerNameMenu.get(); // TODO
                 _currentMenu = nullptr;
                 _currentMenu = nameInput.get();
-                std::cout << "Player Name Menu Not Implemented Yet!" << std::endl;
                 break;
             case MenuState::PLAY:
                 _currentMenu = nullptr;
                 std::cout << "Switch Play: "<< _currentMenu << std::endl;
                 break;
             case MenuState::CHARACTER_MENU:
-                // _currentMenu = characterMenu.get(); // TODO
-                _currentMenu = nullptr;
+                // _currentMenu = characterMenu.get(); // TODO : implement
+                _currentMenu = mainMenu.get(); // do nothing
                 break;
             case MenuState::BACK:
                 // Note: for simple menu like this, just default to Main
@@ -342,15 +398,16 @@ class MenuManager {
     void Render(SDL_Renderer* renderer) {
         if (_currentMenu) {_currentMenu->Render();}
     }
-
-    //unecessary(??) wrapper 
+ 
     MenuState handleEvent(const SDL_Event& e) {
         if (_currentMenu != nameInput.get()) {
+            auto ptr = nameInput.get();
+            std::cout << "Handling Event in Non-Name Menu" <<_currentMenu << " " << ptr << std::endl; //debug
             return _currentMenu->queryButtons(e);
         }
-        nameInput->getNameInput(e);
+        nameInput->getNameInput(e); // TODO : fix this logic so back button is accessible when text is empty (but only Start is inaccessible)
         if (nameInput->getPlayerName().size() >= 2) {
-            std::cout << "Player Name Entered: " << nameInput->getPlayerName() << std::endl;
+            _playerName = nameInput->getPlayerName(); //pass to state manager
            return _currentMenu->queryButtons(e);
         }
         return MenuState::NONE;
@@ -359,26 +416,25 @@ class MenuManager {
     bool display() {
         bool running = true;
         SDL_Event e;
+        _currentMenu = mainMenu.get();
+        _state = MenuState::MAIN_MENU;
 
         while (running && _currentMenu) {
    
-            if (_state == MenuState::PLAY) {
-                std::cout << "Menu State Here ? " << static_cast<int>(_state) << std::endl; //debug
-                return true;
-            } //start game
+            if (_state == MenuState::PLAY) { return true;}  //start game
 
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
+                    std::cout << "First Quit Event" << std::endl;
                     running = false; // exit game
                 }
-                _state = _currentMenu->queryButtons(e);
+                _state = handleEvent(e);
                 if (_state == MenuState::QUIT) {
-                    std::cout << "Not here ?" << std::endl;
+                     std::cout << "Quit Event" << std::endl;
                     return false; // exit game (may be redundant), should quit from any menu (TODO add "Back Logic")
                 } 
                 switchMenu(); // wonder how this will work if PollEvent is still non-empty
             }
-            if (_state == MenuState::PLAY) { return true ;} // putting it here for now bc of rendering errors
             //could bundle into another "Render" call
             //clear screen
             SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255); // black background
