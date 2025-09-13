@@ -28,7 +28,9 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
-               std::size_t target_frame_duration) {
+               std::size_t target_frame_duration,
+               MessageQueue<SDL_Point> *subscriberq,
+               MessageQueue<SDL_Point> *publisherq) {
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
   Uint32 frame_end;
@@ -41,11 +43,16 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
   while (running) {
     frame_start = SDL_GetTicks();
+    // std::cout << "Inside Game Loop" << std::endl;
+
+    // AI Step:
+    SDL_Point ai_location = subscriberq->send(); // this actually GETS move from AI
+    std::cout << "Game received AI Move: " << ai_location.x << ", " << ai_location.y << std::endl;
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update();
-    renderer.Render(snake, food);
+    renderer.Render(snake, food, ai_location);
     if (snake.alive == false) {
         return;
     }
@@ -63,6 +70,14 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       frame_count = 0;
       title_timestamp = frame_end;
     }
+
+    // this SENDS player loc to AI, giving it time to calc next move
+    std::cout << "Where does it think the snake is ? " << static_cast<int>(snake.head_x) << ", " << static_cast<int>(snake.head_y) << std::endl;
+    int send_x = static_cast<int>(snake.head_x);
+    int send_y = static_cast<int>(snake.head_x);
+    publisherq->receive(std::move(
+    SDL_Point{static_cast<int>(snake.head_x), 
+              static_cast<int>(snake.head_y)}));
 
     // If the time for this frame is too small (i.e. frame_duration is
     // smaller than the target ms_per_frame), delay the loop to

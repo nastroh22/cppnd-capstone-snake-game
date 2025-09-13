@@ -255,7 +255,7 @@ public:
 class StartButton : public Button {
 public:
     StartButton(SDL_Renderer* renderer)
-        : Button(renderer, MenuState::PLAY, START_BUTTON_COLOR, START_BUTTON_RECT, "Start") {}
+        : Button(renderer, MenuState::PLAY, START_BUTTON_COLOR, START_BUTTON_RECT, "Start") {label = "Play";}
 };
 
 
@@ -372,7 +372,6 @@ class MenuManager {
                 _currentMenu = nameInput.get();
                 break;
             case MenuState::PLAY:
-                _currentMenu = nullptr;
                 std::cout << "Switch Play: "<< _currentMenu << std::endl;
                 break;
             case MenuState::CHARACTER_MENU:
