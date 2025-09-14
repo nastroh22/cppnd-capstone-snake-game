@@ -11,6 +11,7 @@
 #include "ai/run.h"
 #include "queue.h"
 #include "SDL.h"
+#include <atomic>
 
 enum class GameState { MENU, PLAYING, EXIT };
 
@@ -25,9 +26,11 @@ int main() {
 
 
   //Set up AI position queue
-  std::shared_ptr<MessageQueue<SDL_Point>> aiq(new MessageQueue<SDL_Point>);
-  std::shared_ptr<MessageQueue<SDL_Point>> playerq(new MessageQueue<SDL_Point>);
-  Planner planner = Planner(aiq.get(),playerq.get());
+
+  std::shared_ptr<std::atomic<bool>> shutdown_flag = std::make_shared<std::atomic<bool>>(false);
+  std::shared_ptr<MessageQueue<SDL_Point>> aiq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
+  std::shared_ptr<MessageQueue<SDL_Point>> playerq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
+  Planner planner = Planner(aiq.get(),playerq.get(), shutdown_flag);
 
 
   //ASync Test
@@ -56,11 +59,16 @@ int main() {
       }
 
       case GameState::PLAYING: {
+        shutdown_flag->store(false);
+        planner.on();
+        std::cout << "Launching planner thread " << std::endl;
+        std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
         std::this_thread::sleep_for(std::chrono::seconds(1)); 
         {
           Game game(kGridWidth, kGridHeight);
-          std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
-          game.Run(controller, renderer, kMsPerFrame, aiq.get(), playerq.get());
+          game.Run(controller, renderer, kMsPerFrame, aiq.get(), playerq.get(), shutdown_flag);
+          shutdown_flag->store(true);
+          std::this_thread::sleep_for(std::chrono::milliseconds(500));
           planner.off();
           bool test = f.get(); // TODO: notify AI thread that the game is over 
           std::cout << "Enemy thread is off: " << test << std::endl;

@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include "food.h"
 #include <memory>
+#include <optional>
 
 
 // Note: possible use case of a template:
@@ -30,7 +31,8 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
 void Game::Run(Controller const &controller, Renderer &renderer,
                std::size_t target_frame_duration,
                MessageQueue<SDL_Point> *subscriberq,
-               MessageQueue<SDL_Point> *publisherq) {
+               MessageQueue<SDL_Point> *publisherq,
+               std::shared_ptr<std::atomic<bool>> shutdown_flag) {
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
   Uint32 frame_end;
@@ -41,12 +43,19 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   // Init Unique Textures (could move to main perhaps)
   for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());}
 
+  SDL_Point ai_location = SDL_Point{20,20}; // initialize to same as constructor
+
   while (running) {
     frame_start = SDL_GetTicks();
     // std::cout << "Inside Game Loop" << std::endl;
 
     // AI Step:
-    SDL_Point ai_location = subscriberq->send(); // this actually GETS move from AI
+    std::cout << "Tries to subscribe " << std::endl;
+    std::optional<SDL_Point> msg = subscriberq->send(); // this actually GETS move from AI
+    std::cout << "Has value check " << std::endl;
+    if (msg.has_value()) {
+        ai_location = msg.value();
+    }
     std::cout << "Game received AI Move: " << ai_location.x << ", " << ai_location.y << std::endl;
 
     // Input, Update, Render - the main game loop.
@@ -54,6 +63,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     Update();
     renderer.Render(snake, food, ai_location);
     if (snake.alive == false) {
+        // Shutdown the ai thread  with shutdown flag
+        shutdown_flag->store(true);
         return;
     }
 

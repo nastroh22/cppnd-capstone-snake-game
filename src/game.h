@@ -16,8 +16,9 @@ class Game {
   Game(std::size_t grid_width, std::size_t grid_height); // optionally init the Game Object with a copy of queues
   void Run(Controller const &controller, Renderer &renderer,
            std::size_t target_frame_duration, 
-           MessageQueue<SDL_Point> *pubq = nullptr,
-           MessageQueue<SDL_Point> *subq = nullptr);
+           MessageQueue<SDL_Point> *pubq,
+           MessageQueue<SDL_Point> *subq,
+           std::shared_ptr<std::atomic<bool>> shutdown_flag);
           //  Planner *planner = nullptr); // I think just need the queue for now
   int GetScore() const;
   int GetSize() const;

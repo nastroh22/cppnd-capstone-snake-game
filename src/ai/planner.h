@@ -5,6 +5,9 @@
 #include <vector>
 #include <algorithm>
 #include "./constants.h"
+#include <memory>
+#include <atomic>
+#include <optional>
 
 // NOTE: Rendenrer is using a subgrid, which will make A* more feasible actually
 // kGridWidth, kGridHeight
@@ -41,22 +44,35 @@ class Planner {
     public:
         Planner() = delete;
         Planner(MessageQueue<SDL_Point> *const pubq, 
-                MessageQueue<SDL_Point> *const subq) :
-                _publisher(pubq), _subscriber(subq) {};
+                MessageQueue<SDL_Point> *const subq,
+                std::shared_ptr<std::atomic<bool>> _shutdown_flag) :
+                _publisher(pubq), _subscriber(subq), _shutdown_flag(_shutdown_flag) {};
         ~Planner() = default;
 
         SDL_Point getNextMove();
         void publishMove() {_publisher->receive(std::move(_next_move));};
         void subscribeGoal() {
-            SDL_Point temp = _subscriber->send(); // NOTE: move this multiply into the game logic instead (perhaps)?
-            goal.x = temp.x * (kScreenWidth/ kGridWidth); // or deal compeltely in grid units here
-            goal.y = temp.y * (kScreenHeight/ kGridHeight);
+            std::optional<SDL_Point> temp = _subscriber->send(); 
+            if (_shutdown_flag->load()){
+                _running = false; // break loop
+                return;
+            }
+            if (!temp.has_value()){ // do nothing, but should only happen in shutdown
+                std::cout << "Planner did not receive goal, continue with last value" << std::endl;
+                return;
+            }
+            // NOTE: move this multiply into the game logic instead (perhaps)?
+            goal.x = temp.value().x * (kScreenWidth/ kGridWidth); // or deal compeltely in grid units here
+            goal.y = temp.value().y * (kScreenHeight/ kGridHeight);
         };
+        bool on() {_running = true; return _running;}; // NOTE: can probably just coordinate with shutdown flag
         bool off() {_running = false; return _running;};
         bool is_running() const {return _running;};
         SDL_Point Patrol();
         SDL_Point FollowLine();
         void printGoalPoint() const {std::cout << "Goal : " << goal.x << ", " << goal.y << std::endl;};
+        void checkPubqSize() const {std::cout << "Publisher Queue Size: "; _publisher->size();};
+        void checkSubqSize() const {std::cout << "Subscriber Queue Size: "; _subscriber->size();};
 
         // A* helper methods
         // float calculateHValue(Node const *node) {float h = end_node->distance(*node); return h;};
@@ -88,6 +104,7 @@ class Planner {
         int delta_x = 0;
         int delta_y = 0;
         SDL_Point goal = SDL_Point{50,300}; // Location of the player
+        std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
 
         // TODO: Implement message queues
         // TODO: A* stuff
