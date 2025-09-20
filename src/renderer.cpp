@@ -60,15 +60,16 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, const Food *food, const SDL_Point ai_location) { // SDL_Point const &food
+void Renderer::Render(
+    Snake const &snake, 
+    const Food *food, 
+    const SDL_Point ai_location,
+    SDL_Texture* ai_texture) 
+{ 
   SDL_Rect block;
   SDL_Rect enemy;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
-  enemy.w = block.w;
-  enemy.h = block.h;
-  enemy.x = ai_location.x;
-  enemy.y = ai_location.y;
 
   // Clear screen
   SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
@@ -92,32 +93,44 @@ void Renderer::Render(Snake const snake, const Food *food, const SDL_Point ai_lo
   // dstRect.y = y_position;  // update this each frame to move texture vertically
   // dstRect.w = width;       // width of your texture (can query surface or texture)
   // dstRect.h = height;      // height of your texture
+  
+  // Item texture
+  block.x = food->get_x() * block.w;
+  block.y = food->get_y() * block.h;
   SDL_RenderCopy(sdl_renderer, food->get_texture(), nullptr, &block); // "block" is already an SDL_rect
 
 
-  // Render Ai Enemy
-  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
-  SDL_RenderFillRect(sdl_renderer, &enemy);
-
+  // AI Texture
+  enemy.w = block.w; 
+  enemy.h = block.h;
+  enemy.x = ai_location.x * block.w; 
+  enemy.y = ai_location.y * block.h;
+  enemy.w *= 1.45;
+  enemy.h *= 1.45; //scale size a bit
+  SDL_RenderCopy(sdl_renderer, ai_texture, nullptr, &enemy);
 
   // Render snake's body
-  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+  // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
   for (SDL_Point const &point : snake.body) {
     block.x = point.x * block.w;
     block.y = point.y * block.h;
-    SDL_RenderFillRect(sdl_renderer, &block);
+    SDL_RenderCopy(sdl_renderer, snake.get_body_texture(), nullptr, &block);
   }
 
   // Render snake's head
-  block.x = static_cast<int>(snake.head_x) * block.w;
-  block.y = static_cast<int>(snake.head_y) * block.h;
-  std::cout << "What does the block say: " << block.x << ", " << block.y << std::endl;
+  block.x = static_cast<int>(snake.head_x) * block.w ;
+  block.y = static_cast<int>(snake.head_y) * block.h ;
+  std::cout << block.w << " "<< block.h << std::endl;
   if (snake.alive) {
-    SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
+    // NOTE: possible TODO: figure out how to make sammy a bit larger
+    // std::cout << "Should Render Snake Head Texture " << snake.get_head_texture() << std::endl;
+    SDL_RenderCopy(sdl_renderer, snake.get_head_texture(), nullptr, &block);
+    // SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
   } else {
-    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
+    SDL_RenderCopy(sdl_renderer, snake.get_dies_texture(), nullptr, &block);
+    // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
   }
-  SDL_RenderFillRect(sdl_renderer, &block);
+  // SDL_RenderFillRect(sdl_renderer, &block);
 
   // Update Screen
   SDL_RenderPresent(sdl_renderer);

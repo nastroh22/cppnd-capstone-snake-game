@@ -17,13 +17,15 @@ SDL_Point Planner::Patrol() {
     if (_counter % 100 == 75) {delta_x = 0; delta_y = -2;};
     x+=delta_x; y+=delta_y;
     _counter ++;
-    return SDL_Point{x,y};
+    return SDL_Point{static_cast<int>(x),static_cast<int>(y)};
 }
 
-std::pair<int, int> inline NormalizeSpeed(int dx, int dy, float speed = 2.0f) {
+std::pair<double, double> inline NormalizeSpeed(int dx, int dy, float speed = 2.0f) {
     // Handle zero direction edge case
     if (dx == 0 && dy == 0)
         return {0, 0}; // or throw / handle however you want
+    
+    // std::cout << "Deltas ? : " << dx << ", " << dy << "speed "<< speed << " | ";
 
     // Step 1: normalize to unit vector
     double len = std::sqrt(dx * dx + dy * dy);
@@ -31,35 +33,26 @@ std::pair<int, int> inline NormalizeSpeed(int dx, int dy, float speed = 2.0f) {
     double uy = dy / len;
 
     // Step 2: scale to length 2
-    double scaled_x = ux * speed;
-    double scaled_y = uy * speed;
+    double vx = ux * speed;
+    double vy = uy * speed;
 
     // std::cout << "Normalized Vector ? : " << scaled_x << ", " << scaled_y << " | ";
-
-    // Step 3: round to nearest integer
-    int vx = std::round(scaled_x);
-    int vy = std::round(scaled_y);
-
-    // Optional: Re-check magnitude (vx, vy) and adjust if needed
-    // But this gets very close to norm 2 with correct direction
 
     return {vx, vy};
 }
 
 
 SDL_Point Planner::FollowLine() {
-    int d_x = (goal.x - x);
+    int d_x = (goal.x - x); // NOTE: maybe this could be float
     int d_y = (goal.y - y);
-    std::cout << "Deltas ? : " << d_x << ", " << d_y << " | ";
-    // delta_x = std::min(std::max(delta_x, -2), 2); // clamp to [-2, 2]
-    // delta_y = std::min(std::max(delta_y, -2), 2); // clamp to [-2, 2]
-    std::pair<int,int> vec = NormalizeSpeed(d_x, d_y, 1.5f); // 17 standard allows: auto [x, y] = vectorWithNormTwo(5, 2);
+
+    std::pair<double, double> vec = NormalizeSpeed(d_x, d_y, speed); // 17 standard allows: auto [x, y] = vectorWithNormTwo(5, 2);
+    std::cout << "Deltas ? : " << vec.first << ", " << vec.second << " | ";
     x+=vec.first; 
     y+=vec.second;
-    // currPos.x += vec.first; 
-    // currPos.y += vec.first;
-    // std::cout << "Velocity ? : " << vec.first << ", " << vec.second << " | ";
-    return SDL_Point{x,y};
+    std::cout << "New Position ? : " << x << ", " << y << " | ";
+    
+    return SDL_Point{static_cast<int>(x),static_cast<int>(y)};
 }
 
 

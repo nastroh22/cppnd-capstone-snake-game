@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-void Snake::Update() {
+void Snake::Update(SDL_Point const &ai_location) {
   SDL_Point prev_cell{
       static_cast<int>(head_x),
       static_cast<int>(
@@ -15,8 +15,9 @@ void Snake::Update() {
   // Update all of the body vector items if the snake head has moved to a new
   // cell.
   if (current_cell.x != prev_cell.x || current_cell.y != prev_cell.y) {
-    UpdateBody(current_cell, prev_cell);
+    UpdateBody(current_cell, prev_cell, ai_location);
   }
+
 }
 
 void Snake::UpdateHead() {
@@ -43,7 +44,7 @@ void Snake::UpdateHead() {
   head_y = fmod(head_y + grid_height, grid_height);
 }
 
-void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell) {
+void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell, SDL_Point const &ai_location) {
   // Add previous head location to vector
   body.push_back(prev_head_cell);
 
@@ -56,8 +57,17 @@ void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell) 
   }
 
   // Check if the snake has died.
+  int radius = 1; // make configurable? Hit box
+  const auto isCollision = [radius,ai_location](SDL_Point const &pt) -> bool {
+    return std::abs(ai_location.x - pt.x) <= radius &&
+           std::abs(ai_location.y - pt.y) <= radius;
+  };
+  if (isCollision(current_head_cell)) {
+    alive = false;
+  }
   for (auto const &item : body) {
-    if (current_head_cell.x == item.x && current_head_cell.y == item.y) {
+    if ((item.x == ai_location.x && item.y == ai_location.y) || isCollision(item))
+    {
       alive = false;
     }
   }
@@ -77,3 +87,56 @@ bool Snake::SnakeCell(int x, int y) {
   }
   return false;
 }
+
+SDL_Texture* Snake::InitTexture(SDL_Renderer* renderer, const std::string& path) {
+  SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+  if (!surface) {
+    std::cerr << "Failed to load snake BMP: " << path  << " " << SDL_GetError() << std::endl;
+    return nullptr;
+  }
+
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (!texture) {
+    std::cerr << "Failed to create  texture: " <<  path  << " " << SDL_GetError() << std::endl;
+    // Handle error or set to nullptr
+  }
+  else {
+    std::cout << "Loaded Snake Texture from " << path << std::endl;
+  }
+  SDL_FreeSurface(surface);
+  std::cout << "Texture pointer here : " << texture << std::endl;
+  int w = 0, h = 0;
+  SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
+  std::cout << "Raw loaded texture is size: " << w << " x " << h << "\n";
+  return texture;
+}
+
+void Snake::InitHeadTexture(SDL_Renderer* renderer, const std::string& path) {
+    if (snake_head_texture) SDL_DestroyTexture(snake_head_texture); // free existing resource
+    snake_head_texture = InitTexture(renderer, path);
+}
+
+void Snake::InitBodyTexture(SDL_Renderer* renderer, const std::string& path) {
+    if (snake_body_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
+    snake_body_texture = InitTexture(renderer, path);
+}
+
+void Snake::InitDiesTexture(SDL_Renderer* renderer, const std::string& path) {
+    if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
+    snake_dies_texture = InitTexture(renderer, path);
+}
+
+inline std::string appendRoot(std::string path){
+    return std::string(PROJECT_ROOT_PATH) + path;
+}
+
+std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = {
+    {Sammy,  {appendRoot("/assets/snake_green_head.bmp"), 
+              appendRoot("/assets/snake_green_blob.bmp"),
+              appendRoot("/assets/snake_green_xx.bmp")}
+    },
+    {Cindy,  {appendRoot("/assets/snake_yellow_head.bmp"), 
+              appendRoot("/assets/snake_yellow_blob.bmp"),
+              appendRoot("/assets/snake_yellow_xx.bmp")}
+    },
+};

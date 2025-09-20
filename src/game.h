@@ -10,6 +10,7 @@
 #include <memory>
 #include "queue.h"
 #include "ai/planner.h"
+#include "snake.h"
 
 class Game {
  public:
@@ -18,8 +19,10 @@ class Game {
            std::size_t target_frame_duration, 
            MessageQueue<SDL_Point> *pubq,
            MessageQueue<SDL_Point> *subq,
-           std::shared_ptr<std::atomic<bool>> shutdown_flag);
-          //  Planner *planner = nullptr); // I think just need the queue for now
+           std::shared_ptr<std::atomic<bool>> shutdown_flag,
+           CharacterEnum character,
+           SDL_Texture *ai_texture);
+ 
   int GetScore() const;
   int GetSize() const;
   // SDL_Point GetAiMove() {};
@@ -40,7 +43,7 @@ class Game {
   int score{0};
 
   void PlaceFood();
-  void Update();
+  void Update(SDL_Point const &ai_location);
 };
 
 #endif

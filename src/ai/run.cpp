@@ -18,12 +18,12 @@ bool AI::run(Planner &planner) {
         move = planner.getNextMove();
         planner.publishMove();
         planner.checkPubqSize();
-        std::cout << "Move Published: " << move.x << ", " << move.y << std::endl;
+        // std::cout << "Move Published: " << move.x << ", " << move.y << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(7));
         planner.checkSubqSize();
         // std::cout << "Subscribing to new goal " << std::endl;
         planner.subscribeGoal(); // get player position from queue
-        std::cout << "Received New Goal "; planner.printGoalPoint();
+        // std::cout << "Received New Goal "; planner.printGoalPoint();
     }
 
     return false;

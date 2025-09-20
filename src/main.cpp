@@ -12,6 +12,8 @@
 #include "queue.h"
 #include "SDL.h"
 #include <atomic>
+#include "snake.h"
+#include "character.h"
 
 enum class GameState { MENU, PLAYING, EXIT };
 
@@ -26,19 +28,14 @@ int main() {
 
 
   //Set up AI position queue
-
   std::shared_ptr<std::atomic<bool>> shutdown_flag = std::make_shared<std::atomic<bool>>(false);
   std::shared_ptr<MessageQueue<SDL_Point>> aiq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
   std::shared_ptr<MessageQueue<SDL_Point>> playerq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
   Planner planner = Planner(aiq.get(),playerq.get(), shutdown_flag);
-
-
-  //ASync Test
-  // std::cout << "Main Thread is waiting for simulated work " << std::this_thread::get_id() << std::endl; 
-  // std::future<SDL_Point> f = std::async(std::launch::async, [queue, &planner](){return AI::run(planner);}); // run in background thread
-  // SDL_Point msg = f.get();
-  // std::cout << "Main Thread unblocked " << std::this_thread::get_id() << "f returned: " << msg.x << ", "<< msg.y << std::endl; 
-
+  CharacterEnum character = CharacterEnum::Sammy;
+  Characters::Hawk hawk(renderer.get());
+  
+  
   
   while (state != GameState::EXIT) {
     switch (state) {
@@ -60,16 +57,18 @@ int main() {
 
       case GameState::PLAYING: {
         shutdown_flag->store(false);
-        planner.on();
+      
+        planner.start(); 
         std::cout << "Launching planner thread " << std::endl;
         std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
         std::this_thread::sleep_for(std::chrono::seconds(1)); 
         {
           Game game(kGridWidth, kGridHeight);
-          game.Run(controller, renderer, kMsPerFrame, aiq.get(), playerq.get(), shutdown_flag);
-          shutdown_flag->store(true);
+          game.Run(controller, renderer, kMsPerFrame, aiq.get(), playerq.get(), shutdown_flag, character, hawk.get());
+          shutdown_flag->store(true); // for manual quit path
+          aiq->clear(); playerq->clear();
           std::this_thread::sleep_for(std::chrono::milliseconds(500));
-          planner.off();
+          planner.stop();
           bool test = f.get(); // TODO: notify AI thread that the game is over 
           std::cout << "Enemy thread is off: " << test << std::endl;
           ScoreIO::Entry new_entry{Player, game.GetScore()};

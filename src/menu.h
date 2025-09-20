@@ -259,7 +259,6 @@ public:
 };
 
 
-
 // Base Menu Type
 class Menu {
 public:
@@ -314,6 +313,13 @@ class PlayerEntryMenu : public Menu {
     std::unique_ptr<InputWindow> _textEntry; // automate free textures
     // Window _text_entry;
 };
+
+// class CharacterMenu : public Menu {
+//     public:
+//     CharacterMenu(SDL_Renderer* renderer);
+//     ~CharacterMenu() = default;
+// }
+
 
 // NOTE: score manager maybe could use a new thread to get scores from file
 // wouldn't really be that helfpful for small file, but to demonstrate the concept

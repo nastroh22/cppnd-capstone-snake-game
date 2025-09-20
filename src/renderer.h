@@ -14,9 +14,13 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  void Render(Snake const snake, const Food *food, const SDL_Point ai_location = SDL_Point{0,0}); //old way: SDL_Point const &food
+  void Render(Snake const &snake, 
+              const Food *food, 
+              const SDL_Point ai_location = SDL_Point{0,0},
+              SDL_Texture *ai_texture = nullptr); //old way: SDL_Point const &food
   void UpdateWindowTitle(int score, int fps);
   SDL_Renderer* get() const { return sdl_renderer; } // needed so I can init textures in Food class
+
 
 
  private:

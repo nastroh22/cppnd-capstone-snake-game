@@ -12,9 +12,7 @@
 // NOTE: Rendenrer is using a subgrid, which will make A* more feasible actually
 // kGridWidth, kGridHeight
 
-
 class Node {
-
     public:
         Node() = default;
         ~Node() = default;
@@ -39,7 +37,7 @@ bool inline Compare(Node *a , Node *b){
         return ((a->h_value + a->g_value) >= (b->h_value + b->g_value));
 };
 
-
+// NOTE: maybe store the hawk texture here instead
 class Planner {
     public:
         Planner() = delete;
@@ -62,17 +60,18 @@ class Planner {
                 return;
             }
             // NOTE: move this multiply into the game logic instead (perhaps)?
-            goal.x = temp.value().x * (kScreenWidth/ kGridWidth); // or deal compeltely in grid units here
-            goal.y = temp.value().y * (kScreenHeight/ kGridHeight);
+            goal.x = temp.value().x;  //* (kScreenWidth/ kGridWidth); // or deal compeltely in grid units here
+            goal.y = temp.value().y;  //* (kScreenHeight/ kGridHeight);
         };
-        bool on() {_running = true; return _running;}; // NOTE: can probably just coordinate with shutdown flag
-        bool off() {_running = false; return _running;};
+        bool start() {_running = true; resetPosition(); return _running;}; // NOTE: can probably just coordinate with shutdown flag
+        bool stop() {_running = false; return _running;};
         bool is_running() const {return _running;};
         SDL_Point Patrol();
         SDL_Point FollowLine();
         void printGoalPoint() const {std::cout << "Goal : " << goal.x << ", " << goal.y << std::endl;};
         void checkPubqSize() const {std::cout << "Publisher Queue Size: "; _publisher->size();};
         void checkSubqSize() const {std::cout << "Subscriber Queue Size: "; _subscriber->size();};
+        void resetPosition() { x = 1.0; y = 1.0;}; // reset to corner
 
         // A* helper methods
         // float calculateHValue(Node const *node) {float h = end_node->distance(*node); return h;};
@@ -97,14 +96,16 @@ class Planner {
 
         // dummy moves
         size_t _counter;
-        int x = 20;
-        int y = 20;
+        double x = 1.0;
+        double y = 1.0;
 
         bool _running = true;
         int delta_x = 0;
         int delta_y = 0;
-        SDL_Point goal = SDL_Point{50,300}; // Location of the player
+        float speed{0.06f}; // 60% of the snake speed // TODO move everything to constants.h
+        SDL_Point goal = SDL_Point{2,2}; // Location of the player
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
+        SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering
 
         // TODO: Implement message queues
         // TODO: A* stuff

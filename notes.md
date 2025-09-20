@@ -79,6 +79,55 @@ https://wiki.libsdl.org/SDL3/APIByCategory
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
 ```
 
+# New Features
+My implementation of the snake game extends the base project in the following ways:
+- Inclusion of game menu that provides various options for the user to interact with, such as viewing high scores, choosing a character icon to play as, naming their character, and quitting the menu.
+- The control flow structure of the game has also been updated so that at the conclusion of a single round, instead of quitting, the game returns to the main menu, allowing the plauyer to choose to play again.
+- Addition of "enemies" into the game which include a pursuer, a guard and moving obstacles. These are launched as new threads that concurrently plan their moves during game play.
+- Addition of different "food" objects, which currently simply load different icons randomly, but with plans in the future to tie the items to different rules, power-ups, score boosts, etc.
+- Concurrency relies on the use of several message queus for publishing and receiving player/enemy positions where the queue follows the basic structure from module 4 of this course
+
+
+
+# Rubric Criteria
+
+##  Loops, Functions, I/O
+| Criteria         | Project Feature                    |
+| ---------------- | -------------------------------------- | 
+| The project demonstrates an understanding of C++ functions and control structures.  | <ul><li>Game state managed through case/switch control structure. Which defines when to load menus. </li> <li> Planner thread is carefully controlled through std::atomic shutdown flag </li> <li> Ample use of functions to encapsulate and control pursuer and menu logic </li></ul> |
+| The project reads data from a file and process the data, or the program writes data to a file.  | <ul><li>Loads and renders .bmp files for characters and food items </li> <li>Uses std::filesystem to save/load high scores </li> </ul> |
+| The project accepts user input and processes the input. |<ul><li>Player name is accepted as user input </li> <li>Input is processed by associating name to score</li> </ul> |
+| The project uses data structures and immuatable variables |<ul><li> Use of both arrays (for finite list of items) and vectors (in message queues) </li> <li>Const variables are frequently defined in new classes often for immutable pointers or rendering constants (colors, rectangle sizes) which can be defined by the game designer </li> </ul> |
+
+
+##  Object-Oriented Programming
+| Criteria         | Project Feature                    |
+| ---------------- | -------------------------------------- | 
+| One or more classes are added to the project with appropriate access specifiers for class members.  | <ul><li> Menu is implemented as hierarchical class structure </li> <li> Food items are also new classes </li> <li> Planner is a new class ( and character inheritance TODO) </li> <li> All of these are accessed appropriately throughout game control strcuture </li></ul> |
+| Class constructors utilize member initialization lists. | <ul><li> Menu classes frequently use initializer lists to set rendering constants </li> |
+| Classes abstract implementation details from their interfaces. |<ul><li> Menu class for example is fully abstracted, such that the main game loop simply uses a "MenuManager.run()" call which then handles all menu loading/switching logic internally <li> The menu design is also fully customizable where, upon object construction, desgin choices are automatically applied through the simple setting of constants before compiling </li></li>|
+| Overloaded functions allow the same function to operate on different parameters. |<ul><li> (Possibly) enemy "run" target is overloaded </li> <li>While not technically "overloaded" the menu "Render()" calls are custom to the element they render </li> <li>Otherwise, I don't think I use any overloading</li> </ul> |
+| Classes follow an appropriate inheritance hierarchy with virtual and override functions. |<ul><li> Menu and Food are both defined with a clear inheritance structure </li> <li> For example, a menu object has sub-elements like "Window" or "Button" which inherit from their parent container and extend with specific colors/shapes etc. </li> </ul> |
+| Templates generalize functions or classes in the project.|<ul><li> Templates are used in the MessageQueue class </li> |
+
+
+##  Memory Management
+| Criteria         | Project Feature                    |
+| ---------------- | -------------------------------------- | 
+| The project makes use of references in function declarations.  | <ul><li> References are added to the `game.run()` function to aid in state management so that there is a single instance of "Planner" for example </li> Other <li> </li> |
+| The project uses destructors appropriately. | <ul><li> Most destructors are allowed to be default due to RAII and smart pointers </li> <li> However, the destructor of the "Text" object in particular uses "delete" to free resources and is cleaned up upon destruction of the menu object </li> |
+| The project uses scope / Resource Acquisition Is Initialization (RAII) where appropriate. | <ul><li> Scope and RAII are heavily depended upon for the `Planner` and `Menu` objects </li> |
+| The project follows the Rule of 5 | <ul><li> Defaults are mostly used </li> <li> However, the food class structure uses rule of 5, albeit it is through deletion of certain operations not needed such as copy construct and copy move operator </li>|
+| The project uses move semantics to move data instead of copying it, where possible. | <ul><li> Move semantics are utilized in the `MessageQueue` </li> |
+| The project uses smart pointers instead of raw pointers. | <ul><li> Shared pointers are used for queues, so that both main and planner threads have shared access while lifetime management is automated </li> <li> Food object uses unique_pointer since ... </li> |
+
+
+##  Concurrency
+| Criteria         | Project Feature                    |
+| ---------------- | -------------------------------------- | 
+| The project uses multithreading. | <ul><li> Planner and main threads run concurrently </li> |
+| A mutex or lock is used in the project. | <ul><li> MessageQueue uses a unique_lock and lock guard as outlined in the pattern of module 4 in this course </li> |
+| A condition variable is used in the project. | <ul><li> Again, utilized in the `MessageQueue` </li> |
 
 
 # Rubric Items & New Features:
