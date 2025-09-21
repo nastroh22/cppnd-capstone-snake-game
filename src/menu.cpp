@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm> 
+#include "scoreio.h"
 
 //***************************** Helper ***************************************** */
 
@@ -102,7 +103,7 @@ SDL_Texture *Text::loadFont(SDL_Renderer *renderer, const std::string &font_path
     if (!text_texture) {
         std::cerr << "Failed to create text texture: " << SDL_GetError() << std::endl;
     }
-    std::cout << "Loaded Font" << std::endl;
+    // std::cout << "Loaded Font" << std::endl;
 
     SDL_FreeSurface(text_surface);
     return text_texture;
@@ -121,8 +122,24 @@ void Window::Render(SDL_Renderer* renderer){
     // render title
     _title.display(renderer, 
         _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
-        _windowRect.y + 10 // some padding from top
+        _windowRect.y + 10
     );
+}
+
+// NOTE: can actually deprecate this custom render and just store this loagic at class level with _text_x, _text_y
+void Cell::Render(SDL_Renderer* renderer){
+    // draw color
+    SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
+    SDL_RenderFillRect(renderer, &_windowRect);
+
+    // draw border
+    drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
+    if (_shouldUpdate) {
+        _title.displayDynamic(renderer, _text_x, _text_y, _cellText);
+        _shouldUpdate = false;
+    } else {
+        _title.display(renderer, _text_x, _text_y);
+    }
 }
 
 void InputWindow::Render(SDL_Renderer* renderer){
@@ -159,7 +176,6 @@ void Button::toggleHover(const SDL_Point& mousePoint) {
     }
 }
 
-
 // TODO : Make a Template That Can Render Button or Window
 void Button::Render(SDL_Renderer* renderer){
 
@@ -175,6 +191,96 @@ void Button::Render(SDL_Renderer* renderer){
         _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2,
         _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2
     );
+}
+
+// following functions toggle the offset of the container's underlying TableWindow
+MenuState ScoreDownButton::onClick(Menu* container) const {
+        std::cout << "ScoreDown Clicked again ? " << std::endl; //debug
+        if (container) {
+            container->toggleOffset(PageToggle::DOWN);
+        } else {
+            std::cout << "Warning: ScoreDownButton did not receive container pointer " << container << std::endl;
+        }
+        return MenuState::NONE;
+};
+
+MenuState ScoreUpButton::onClick(Menu* container) const {
+        std::cout << "ScoreUp Clicked again ? " << std::endl; //debug
+        if (container) {
+            container->toggleOffset(PageToggle::UP);
+        } else {
+            std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
+        }
+        return MenuState::NONE;
+};
+
+MenuState ScoreBackButton::onClick(Menu* container) const {
+        
+        if (container) {
+            container->toggleOffset(PageToggle::TOP);
+        } else {
+            std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
+        }
+        return MenuState::BACK;
+};
+
+
+// ***************************** Table Defs *********************************** //
+void TableWindow::buildGrid(SDL_Renderer *renderer) {
+    // TODO: this is not yet general, builds in assumptions about scoreTable (i.e. data type, cols=2)
+    // possibly use overloading
+
+    int const cellWidth = _tableRect.w / _cols;
+    int const cellHeight = _tableRect.h / _rows; // TODO: make scrollable
+    gridData = ScoreIO::load_scores(); 
+
+
+    // gridData.clear(); // should only be built once, but in case
+    // gridData.resize(_rows, std::vector<std::string>(_cols, "")); // initialize with empty strings
+
+    gridSpec.clear(); // should only be built once, but in case
+    gridSpec.resize(_rows);
+    std::cout << "Inside buildGrid, gridSpec size: " << gridSpec.size() << gridData.size() << std::endl; //debug
+
+    for (int i = 0; i < _rows; ++i) {
+        
+        std::cout << "tries to get griddata" << std::endl; //debug
+        std::vector<std::string> entry = gridData[i];
+        gridSpec[i].reserve(_cols); // avoid multiple allocations
+        
+        for (int j = 0; j < _cols; ++j) {
+            // std::string initial_text = (j == 0) ? 
+            //     entry.name : std::to_string(entry.score);
+            SDL_Rect cellRect = { //tight layout
+                _tableRect.x + j * cellWidth,
+                _tableRect.y + i * cellHeight,
+                cellWidth,
+                cellHeight
+            };
+            gridSpec[i].emplace_back(
+                renderer, 
+                gridData[i][j], // initial text
+                _cellColor,
+                _cellBorderColor, 
+                cellRect, 
+                _textFontSize, 
+                _textColor
+            );
+            if (j % 2 == 0) {gridSpec[i][j].leftJustify();} // name column
+        }
+    }
+    for (const auto& item : gridData) {
+        std::cout << "Score Data: " << item[0] << ", " << item[1] << std::endl; //debug
+    }
+}
+
+void TableWindow::UpdateCells(int offset){
+    for (int i = 0; i < _rows; ++i) {
+        for (int c = 0; c < _cols; ++c) {
+            int r = i + offset;
+            gridSpec[i][c].UpdateText(gridData[r][c]);
+        }
+    }
 }
 
 //  ***************************** Menu Defs *********************************** //
@@ -198,13 +304,14 @@ MenuState Menu::queryButtons(const SDL_Event& e) {
         return MenuState::NONE; // or some other default state
     }
     SDL_Point mouseClick = {e.button.x, e.button.y };
+    std::cout << "Mouse Click Lag? " << mouseClick.x << " " << mouseClick.y << std::endl;
     for (auto& button : _buttons) {
         if (button->wasClicked(mouseClick)) {
             buttonClicked = true;
             //debug
-            std::cout << "Click! : " << static_cast<int>(button->onClick()) << " "; 
+            // std::cout << "Click! : " << static_cast<int>(button->onClick(nullptr)) << " "; 
             button->printLabel();
-            return button->onClick();
+            return button->onClick(this);
         }
     }
     return MenuState::NONE;
@@ -232,11 +339,19 @@ MainMenu::MainMenu(SDL_Renderer* renderer) //tehchnically can use internal _rend
 
 ScoreMenu::ScoreMenu(SDL_Renderer *renderer) : Menu(renderer) 
 {
-    _buttons.reserve(1);
-    _buttons.emplace_back(std::make_unique<BackButton>(renderer));
+    _buttons.reserve(3);
+    _buttons.emplace_back(std::make_unique<ScoreUpButton>(renderer));
+    _buttons.emplace_back(std::make_unique<ScoreDownButton>(renderer));
+    _buttons.emplace_back(std::make_unique<ScoreBackButton>(renderer));
     // NOTE: leaving additional params for now in case want to customize each window style
-    _window = std::make_unique<Window>(renderer, "High Scores", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
+    _window = std::make_unique<Window>(renderer, "High Scores!", SCORE_WINDOW_COLOR, SCORE_WINDOW_BORDER_COLOR, WIN_POSITION);
+    _scoreTable = std::make_unique<TableWindow>(SCORE_TABLE_RECT, SCORE_CELL_COLOR, SCORE_CELL_BORDER_COLOR, SCORE_TEXT_COLOR, 5, 2);
+    _scoreTable->buildGrid(renderer); // TODO: implement
 }
+void ScoreMenu::Render() {
+    Menu::Render(); // render base window and buttons
+    _scoreTable->Render(_renderer); // render score table on top
+};
 
 PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer) 
 {
@@ -254,13 +369,6 @@ void PlayerEntryMenu::Render() {
 std::string PlayerEntryMenu::getPlayerName() const {
     return strip(_playerName); // remove leading/trailing whitespace
 }
-
-
-// TODO: clean this, right now just wrapping queryButtons()
-// MenuState PlayerEntryMenu::query_buttons(SDL_Event &event){
-//     getNameInput(&event);
-// }
-
 
 MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
     std::cout << "Getting Name Input: " << _playerName << std::endl; //debug
