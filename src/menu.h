@@ -9,9 +9,12 @@
 #include <iostream>
 #include "constants.h" //include Screen Dimensions
 #include "scoreio.h"
+#include "character.h"
+#include <unordered_map>
 
 
 // see: https://www.color-hex.com/color-palette/59812 (good resource on rgb colors)
+// Named Color Options (can of course add whatever you'd like!)
 constexpr SDL_Color WHITE = {255, 255, 255, 255};
 constexpr SDL_Color TAN = {255, 219, 172, 150}; // darker : (241,194,125)
 constexpr SDL_Color FOREST = {39, 62, 6, 200};
@@ -32,6 +35,10 @@ constexpr SDL_Color AVOCADO = {85, 131, 3, 255};
 constexpr SDL_Color SIENNA = {212, 140, 87,255};
 constexpr SDL_Color DARTMOUTH = {0, 121, 68, 255};
 constexpr SDL_Color RUST = {185, 90, 17, 255};
+constexpr SDL_Color DARKGOLD = {152, 114, 11, 255};
+constexpr SDL_Color GOLD = {183, 153, 6, 255};
+constexpr SDL_Color RED = {255, 0, 0, 255};
+constexpr SDL_Color FIRE = {252, 78, 41, 255};
 
 
 // Text Colors
@@ -39,7 +46,7 @@ constexpr SDL_Color DEFAULT_TEXT_COLOR = WHITE;
 constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE;
 constexpr SDL_Color TITLE_COLOR = LEMON;
 
-// Button Backgrounds
+// Button Backgrounds (TODO Bundle into Menu Type Blocks)
 constexpr SDL_Color PLAY_BUTTON_COLOR = ARMY;
 constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
 constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
@@ -48,6 +55,7 @@ constexpr SDL_Color BACK_BUTTON_COLOR = RUST;
 constexpr SDL_Color START_BUTTON_COLOR = MOSS;
 constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
 constexpr SDL_Color HOVER_BORDER_COLOR = LEMON; // for hover effect
+constexpr SDL_Color SELECT_BORDER_COLOR = RETRO_BLUE; // for selected effect
 constexpr SDL_Color BACKGROUND_COLOR = BLACK;
 
 //Window Positions
@@ -79,23 +87,83 @@ constexpr SDL_Color NAME_WIN_COLOR = WHITE;
 constexpr SDL_Color NAME_WIN_TEXT_COLOR = BLACK;
 
 // Main Button Positions 
+// TODO: also generate these positions dynamically based on screen size
 const SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};  // x,y,w,h
-constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75};  // x,y,w,h
+constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75}; 
 constexpr SDL_Rect SCORE_BUTTON_RECT = {220, 350, 200, 75};
 constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
 
 
-// Score Menu Constants
 
-// Make Dynamic ( Future TODO -> Make All Buttons More Dynamic )
-// const SDL_Rect SCORE_TABLE_RECT  = {
-//     WIN_POSITION.x + 20,
-//     WIN_POSITION.y + 60, 
-//     border_height,
-//     static_cast<int>(WIN_POSITION.x - 2*border_width), 
-//     static_cast<int>(kScreenHeight-2*border_height)
-// };
- // x,y,w,h
+// Charcater Menu Constants:
+// NOTE: button rectangles generated dynamically based on screen size and number of characters
+
+// Define these
+enum CharacterEnum {Sammy, Cindy}; // arbitrary enums, but using consistent naming 
+const std::string CHARACTER_NAMES[]= {"Sammy", "Cindy"};  // display names
+constexpr SDL_Color CHARACTER_COLORS[] = {FOREST, DARKGOLD};
+
+
+// Character BMP Files
+const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFileMap = 
+{
+    {CharacterEnum::Sammy, {
+            "../assets/snake_green_head.bmp", 
+            "../assets/snake_green_blob.bmp", 
+            "../assets/snake_green_xx.bmp"
+        }
+    },
+    {CharacterEnum::Cindy, 
+        {
+            "../assets/snake_yellow_head.bmp", 
+            "../assets/snake_yellow_blob.bmp", 
+            "../assets/snake_yellow_xx.bmp"
+        }
+    }
+};
+
+// Menu Format Constants
+constexpr int CHARACTER_BUTTON_PADDING_X = 50;
+constexpr int CHARACTER_BUTTON_PADDING_Y = 50;
+constexpr int NUM_CHARACTER_GRID_COLUMNS = 2; 
+constexpr SDL_Color CHARACTER_BUTTON_BORDER_COLOR = WHITE; // currently does nothing
+static std::unordered_map<std::string, CharacterEnum> characterEnumMap;
+
+
+// Dynamic
+const int NUM_CHARACTERS = static_cast<size_t>(sizeof(CHARACTER_NAMES) / sizeof(CHARACTER_NAMES[0]));
+// const int NUM_CHARACTERS = 2;
+
+
+
+// they call this "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment
+static auto init = []() {
+    for  (int i = 0; i < NUM_CHARACTERS; ++i){
+        characterEnumMap[CHARACTER_NAMES[i]] = static_cast<CharacterEnum>(i);
+    }; 
+    return 0;
+}();
+
+
+
+
+
+
+
+//TODO: String Utils ?
+// #include <algorithm>
+// #include <string>
+// #include <cctype>
+
+// std::string to_lower(const std::string& input) {
+//     std::string result = input;
+//     std::transform(result.begin(), result.end(), result.begin(),
+//                    [](unsigned char c) { return std::tolower(c); });
+//     return result;
+// }
+
+
+
 const SDL_Rect SCORE_TABLE_RECT = {
     WIN_POSITION.x + 10,
     WIN_POSITION.y + 60, // need room for Text
@@ -197,7 +265,6 @@ class Text {
             return *this;
         }
 
-    
     private:
         SDL_Texture *_text_texture;
         mutable SDL_Rect _text_rect = {0,0,20,20}; // for positioning text, mutable so that display can be const
@@ -242,7 +309,7 @@ class Cell : public Window {
                     };
         ~Cell() = default; // will call _text destructor by default
         DISABLE_COPY_ENABLE_MOVE(Cell);
-        void Render(SDL_Renderer* renderer) override;
+        virtual void Render(SDL_Renderer* renderer) override;
         void UpdateText(const std::string &new_text) {
             _cellText = new_text; _shouldUpdate = true;
         }
@@ -263,14 +330,14 @@ class TableWindow  {
     // although since switch to dynamic, could possibly be refactored with just unique functions 
     int const _rows;
     int const _cols;
-    SDL_Rect const _tableRect; // for positioning table
-    SDL_Color const _cellColor; // could make customizable
-    SDL_Color const _cellBorderColor; // could make customizable
-    SDL_Color const _textColor; // could make customizable
-    int const _textFontSize = 24; // could make customizable
-    std::vector<std::vector<Cell>> gridSpec; // 2D array of input windows
-    std::vector<std::vector<std::string>> gridData; // 2D array of strings for data (if needed)
-    int _offset = 0; // for scrolling
+    SDL_Rect const _tableRect; 
+    SDL_Color const _cellColor; 
+    SDL_Color const _cellBorderColor; 
+    SDL_Color const _textColor;
+    int const _textFontSize = 24; 
+    std::vector<std::vector<Cell>> gridSpec;
+    std::vector<std::vector<std::string>> gridData;
+    int _offset = 0; //for scrolling
 
     public:
         TableWindow(SDL_Rect tableDims, SDL_Color cellColor = WHITE, SDL_Color cellBorderColor = BLACK, SDL_Color cellTextColor = WHITE, int rows=5, int cols=2) :
@@ -278,7 +345,7 @@ class TableWindow  {
         ~TableWindow() = default;
         // DISABLE_COPY_ENABLE_MOVE(TableWindow);
         void buildGrid(SDL_Renderer *renderer);
-        void UpdateCells(int start_index); // for scrolling
+        void UpdateCells(int start_index); 
         void Render(SDL_Renderer* renderer) {
             for (auto& row : gridSpec) {
                 for (auto& cell : row) {
@@ -307,8 +374,9 @@ class TableWindow  {
         void resetOffset() { _offset = 0; UpdateCells(_offset);}
 };
 
+//TODO: Possibly refactor this (reuse Cell), because a reference should achieve the same thing than explictly passing pointer
 class InputWindow : public Window {
-    const std::string* _playerInput; // for text entry window //TODO: refactor this, because a reference should achieve the same thing than explictly passing pointer
+    const std::string* _playerInput;
     Text _inputText;
     public:
         InputWindow(SDL_Renderer* renderer, SDL_Color win_color, SDL_Color border_color, SDL_Rect rect, const std::string* dynamic) :
@@ -344,10 +412,13 @@ class InputWindow : public Window {
 //     void toggleHover(const SDL_Point& mouse_point);
 // }
 
-class Menu; // forward declaration needed
-//  *************** Base Button Type ************************************************************ 
+
+
+// ******************** Base Button Type ************************************************************ 
 // TODO : A Button Can Inherit From a Cell
+class Menu; // forward declaration needed
 class Button {
+
 protected:
     Text _text;
     const SDL_Rect _buttonRect; // for positioning button
@@ -355,7 +426,10 @@ protected:
     const MenuState _return_state = MenuState::NONE; // default state
     SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // non-const to enable hover effect
     std::string label = "Button";
-    int _border_thickness = 2; // could make customizable
+    int _borderThickness = 2; // could make customizable
+    bool _freeze_border = false; // to keep border on selected button
+    int _textX, _textY; // for text positioning
+
 
 /*TODO's: 
     Options: create options to customize test colors and Fonts
@@ -363,13 +437,18 @@ protected:
 
 // I think the protected constructor pattern works to make sure no abstract button can be created // TODO re-use for "Menu"
     Button(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text)
-        :_return_state(label), _buttonColor(color), _buttonRect(rect), 
-        _text(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, text, DEFAULT_TEXT_COLOR) {}
+        : _return_state(label), _buttonColor(color), _buttonRect(rect), 
+        _text(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, text, DEFAULT_TEXT_COLOR) 
+        {
+           // default centered text
+           _textX =  _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2;
+           _textY = _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2;
+        }
 
 public:
     virtual ~Button() = default; // will call _text destructor by default
 
-    void Render(SDL_Renderer* renderer); //virtual ?
+    virtual void Render(SDL_Renderer* renderer); //virtual ?
     bool wasClicked(const SDL_Point& mouse_point) const { 
         return SDL_PointInRect(&mouse_point, &_buttonRect);
     }
@@ -377,8 +456,13 @@ public:
         return SDL_PointInRect(&mouse_point, &_buttonRect);
     }
     void toggleHover(const SDL_Point& mouse_point);
+    void setX(int x) { _textX = x; }
+    void setY(int y) { _textY = y; }
+
+    void unselect();
+    void select();
     
-    virtual MenuState onClick(Menu* container = nullptr) const { return _return_state; }
+    virtual MenuState onClick(Menu* container = nullptr) const { return _return_state; } // buttons don't mutate their own state, but can mutate container state
 
     // for debugging / check formats
     void printProperties() const {
@@ -391,13 +475,34 @@ public:
         std::cout << "Return State: " << static_cast<int>(_return_state) << "\n"; // cast enum to int for display
     }
     void printLabel() const { std::cout << "Button Label: " << label << std::endl; }
+
 };
 
-class ImageButton : public Button {
+class ImageButton : public Button 
+{
+    std::string _asset_path;
+    SDL_Texture* _image_texture = nullptr;
 
-}
+    public:
+    ImageButton(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text, std::string image_asset_path)
+        : Button(renderer, label, color, rect, text), _asset_path(std::move(image_asset_path))
+    {
+        // load image texture
+        _image_texture = Characters::InitTexture(renderer, _asset_path); // figure out a better way here
+    }
+    ~ImageButton() override {
+        if (_image_texture) {
+            SDL_DestroyTexture(_image_texture);
+            _image_texture = nullptr;
+        }
+    }
+    // DISABLE_COPY_ENABLE_MOVE(ImageButton);
+    // MenuState onClick(Menu* container = nullptr) const override;
+    void Render(SDL_Renderer* renderer) override;
 
-// *************** Custom Buttons ************************************************************ 
+};
+
+// ********************** Custom Buttons ************************************************************ 
 class PlayButton : public Button {
 public: // TODo: Rename the Top Menu Button to "Start"
     PlayButton(SDL_Renderer* renderer)
@@ -474,7 +579,25 @@ public:
     MenuState onClick(Menu* container) const override;
 };
 
-// *************** Base Menu Type ************************************************************ 
+class CharacterSelectButton : public ImageButton {
+    int _characterIndex = 0; // index in character array
+    std::string _characterName; // or simply use the label
+    public:
+    CharacterSelectButton(SDL_Renderer* renderer, int char_index, SDL_Rect rect)
+        : ImageButton(renderer, MenuState::NONE, CHARACTER_COLORS[char_index], rect, 
+            CHARACTER_NAMES[char_index], characterFileMap.at(static_cast<CharacterEnum>(char_index))[0]), 
+                _characterName(CHARACTER_NAMES[char_index])
+        {
+            label = CHARACTER_NAMES[char_index];
+        }
+        //CHARACTER_BUTTON_BORDER_COLOR -> NOTE/TODO: This is a dummy since hard-coded at button level currently
+    ~CharacterSelectButton() override {};
+    MenuState onClick(Menu* container) const override;
+
+};
+
+
+// ********************** Base Menu Type ************************************************************ 
 class Menu {
 public:
     explicit Menu(SDL_Renderer *renderer) : _renderer(renderer) {} ;
@@ -486,12 +609,40 @@ public:
     virtual MenuState queryButtons(const SDL_Event& e);
     virtual MenuState getNameInput(const SDL_Event& e) {return MenuState::NONE;}; // just make generic getTextInput
     virtual std::string getPlayerName() const {return "";};
+    virtual std::string getCharacterSelection() const {return "";};
+    virtual void setCharacterSelection(const std::string& character){}; // just need this in parent so CharacterMenu can override
 
     virtual Menu* next() { return nullptr; } //not using ? todo:deprecate
 
     // Optional hook when menu becomes active
     virtual void enter() {}
     virtual void toggleOffset(PageToggle direction){}; // just need this in parent so ScoreMenu can override
+
+    virtual void resetButtons(){
+        for (auto &button : _buttons){
+            button->unselect();
+        }
+    }
+
+
+    // Some of these could be protected?
+    void toggleSelectedButton(Button *newButton) {
+        if (_disableSelectEffect) { return; }
+        if (_selectedButton){ //nullptr guard
+            _selectedButton->unselect();
+        }
+        if (_selectedButton == newButton) {
+            _selectedButton->unselect();
+            _selectedButton = nullptr;
+        }
+        else{
+            std::cout << "Should Set the New Button: " << newButton << std::endl;
+            _selectedButton = newButton;
+            _selectedButton->select(); 
+            std::cout << "Selected?: " << _selectedButton << std::endl;
+        }
+    }
+
 
 protected:
     SDL_Texture* _background = nullptr; // Could use a smart pointer with custom deleter
@@ -500,9 +651,12 @@ protected:
 
     std::unique_ptr<Window> _window; // automate free textures
     std::vector<std::unique_ptr<Button>> _buttons;
+    Button* _selectedButton = nullptr; // keep track of selected button for border highlight
+    bool _disableSelectEffect = false; // optional: if menu doen't use select effect
 };
 
-// *************** Custom Menus ************************************************************
+
+// ******************* Custom Menus ************************************************************
 class MainMenu : public Menu {
     public:
     MainMenu(SDL_Renderer* renderer);
@@ -546,12 +700,31 @@ class ScoreMenu : public Menu {
 };
 
 // TODO
-// class CharacterMenu : public Menu {
-//     public:
-//     CharacterMenu(SDL_Renderer* renderer);
-//     ~CharacterMenu() = default;
-// }
+class CharacterMenu : public Menu {
 
+
+    std::string _selectedCharacter = CHARACTER_NAMES[0]; // default
+    int _num_characters = 0;
+    std::vector<SDL_Rect> _characterRects;
+
+    // NOTE: simple first approach, just create two image buttons
+    // future flexibility, reuse the TableWindow class to accept multiple data types
+
+    public:
+    CharacterMenu(SDL_Renderer* renderer);
+    ~CharacterMenu() = default; // responsible for destroying image textures
+    // DISABLE_COPY_ENABLE_MOVE(CharacterMenu);
+
+
+    // void Render() override; // or maybe override not needed
+    void setCharacterSelection(const std::string& character) override { _selectedCharacter = character; }
+    std::string getCharacterSelection() const override { return _selectedCharacter; }
+
+
+    private:
+    void generateGridDimensions();
+
+};
 
 
 // *************** Menu Logic Driver ************************************************************
@@ -562,12 +735,15 @@ class MenuManager {
     const std::unique_ptr<Menu> mainMenu;
     const std::unique_ptr<Menu> scoreMenu;
     const std::unique_ptr<Menu> nameInput;
+    const std::unique_ptr<Menu> characterMenu;
     SDL_Renderer* _renderer = nullptr;
 
     Menu* _currentMenu = nullptr;
     Menu* _prevMenu = nullptr; 
     MenuState _state = MenuState::MAIN_MENU;
     std::string _playerName = "Player1"; // default name
+    std::string _selectedCharacter = CHARACTER_NAMES[0]; // default character
+
     //TODO(?) store _prev
 
     public:
@@ -576,7 +752,8 @@ class MenuManager {
         _renderer(renderer),
         mainMenu(std::make_unique<MainMenu>(renderer)),
         scoreMenu(std::make_unique<ScoreMenu>(renderer)),
-        nameInput(std::make_unique<PlayerEntryMenu>(renderer))
+        nameInput(std::make_unique<PlayerEntryMenu>(renderer)),
+        characterMenu(std::make_unique<CharacterMenu>(renderer))
     {
         _currentMenu = mainMenu.get(); // entry
         std::cout << "Main Pointer : " << mainMenu.get() << std::endl; //debug
@@ -585,6 +762,7 @@ class MenuManager {
     };
     ~MenuManager() = default; //TODO any unique logic needed here?
     std::string getPlayerName() const { return _playerName; }
+    std::string getCharacterSelection() const { return _selectedCharacter; }
 
     void switchMenu() {
         if (_state == MenuState::NONE) { 
@@ -608,12 +786,10 @@ class MenuManager {
                 std::cout << "Switch Play: "<< _currentMenu << std::endl;
                 break;
             case MenuState::CHARACTER_MENU:
-                // _currentMenu = characterMenu.get(); // TODO : implement
-                _currentMenu = mainMenu.get(); // do nothing
+                _currentMenu = characterMenu.get();
                 break;
             case MenuState::BACK:
-                // Note: for simple menu like this, just default to Main
-                // _currentMenu = _prevMenu; // but could use _prevMenu logic here
+                _currentMenu->resetButtons();
                 _currentMenu = mainMenu.get();
                 std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
@@ -632,18 +808,23 @@ class MenuManager {
         }
     }
  
+    // maybe generalize the menus to have a general get data/input function
     MenuState handleEvent(const SDL_Event& e) {
-        if (_currentMenu != nameInput.get()) {
-            auto ptr = nameInput.get();
-            // std::cout << "Handling Event in Non-Name Menu" <<_currentMenu << " " << ptr << std::endl; //debug
-            return _currentMenu->queryButtons(e);
+        
+        if (_currentMenu == nameInput.get()){
+            nameInput->getNameInput(e); 
+            if (nameInput->getPlayerName().size() >= 2) {
+                _playerName = nameInput->getPlayerName();
+            }
         }
-        nameInput->getNameInput(e); // TODO : fix this logic so back button is accessible when text is empty (but only Start is inaccessible)
-        if (nameInput->getPlayerName().size() >= 2) {
-            _playerName = nameInput->getPlayerName(); //pass to state manager
-           return _currentMenu->queryButtons(e);
+    
+        if (_currentMenu == characterMenu.get()) {
+            _selectedCharacter =  _currentMenu->getCharacterSelection();
+            // _currentMenu->toggleSelectedButton();
+            //possibly sleep to ensure proper selection...although probably unecessary
         }
-        return MenuState::NONE;
+        
+        return _currentMenu->queryButtons(e);
     }
 
     bool display() {

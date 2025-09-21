@@ -1,20 +1,20 @@
-ss 32
+hissss 32
 Player1 32
-Player1 32
-Player1 25
-Player1 22
-Player1 21
-Player1 19
-Player1 18
+Joe Biden 32
+Player3 25
+Player4 22
+Player5 21
+Player6 19
+Player7 18
 mario 17
-Player1 17
-Player1 16
+luigi 17
+Charles V 16
 MyNameIs... 15
 Bob 14
 Player1 14
 Bobby 14
+Noob 14
 starter 13
 Nick 12
 MyNameIs... 12
-Player1 11
-Player1 11
+Napoleon 11

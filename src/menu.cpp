@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm> 
 #include "scoreio.h"
+#include <cassert>
 
 //***************************** Helper ***************************************** */
 
@@ -161,19 +162,31 @@ void InputWindow::Render(SDL_Renderer* renderer){
     }
 }
 
-
 //  ***************************** Button Defs  *********************************** //
-
 void Button::toggleHover(const SDL_Point& mousePoint) {
+    
+    if (_freeze_border) { return; } // don't change hover state if frozen
+    
     if (SDL_PointInRect(&mousePoint, &_buttonRect)) {
         // Change border color on hover
         _borderColor = HOVER_BORDER_COLOR;
-        _border_thickness = 4; //thicker border
-    } else {
+        _borderThickness = 4; //thicker border
+    } 
+    else {
         // Revert to default border color
         _borderColor = DEFAULT_BORDER_COLOR;
-        _border_thickness = 2;
+        _borderThickness = 2;
     }
+}
+
+void Button::select() {
+    _borderColor = SELECT_BORDER_COLOR;
+    _freeze_border = true; // keep border on selected button
+}
+
+void Button::unselect() {
+    _borderColor = HOVER_BORDER_COLOR;
+    _freeze_border = false;
 }
 
 // TODO : Make a Template That Can Render Button or Window
@@ -184,13 +197,35 @@ void Button::Render(SDL_Renderer* renderer){
     SDL_RenderFillRect(renderer, &_buttonRect);
 
     // draw border
-    drawBorder(renderer, _buttonRect, _border_thickness, _borderColor); // thickness of 2
+    drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
 
     // render text
-    _text.display(renderer, 
-        _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2,
-        _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2
-    );
+    _text.display(renderer, _textX, _textY);
+}
+
+void ImageButton::Render(SDL_Renderer* renderer){
+
+    // draw color
+    SDL_SetRenderDrawColor(renderer, _buttonColor.r,  _buttonColor.g,  _buttonColor.b,  _buttonColor.a);
+    SDL_RenderFillRect(renderer, &_buttonRect);
+
+    // draw border
+    drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
+
+    setY(_buttonRect.y + 10); // text y position (redunant)
+    _text.display(renderer, _textX, _buttonRect.y + 10); // render text
+
+    // render image centered
+    if (_image_texture) {
+        int img_w, img_h;
+        SDL_QueryTexture(_image_texture, nullptr, nullptr, &img_w, &img_h);
+        int img_x = _buttonRect.x + (_buttonRect.w - img_w) / 2;
+        int img_y = _buttonRect.y + (_buttonRect.h - img_h) / 2;
+        SDL_Rect destRect = {img_x, img_y, img_w, img_h};
+        SDL_RenderCopy(renderer, _image_texture, nullptr, &destRect);
+    } else {
+        std::cerr << "Warning: ImageButton has no image texture to render." << std::endl;
+    }
 }
 
 // following functions toggle the offset of the container's underlying TableWindow
@@ -205,24 +240,33 @@ MenuState ScoreDownButton::onClick(Menu* container) const {
 };
 
 MenuState ScoreUpButton::onClick(Menu* container) const {
-        std::cout << "ScoreUp Clicked again ? " << std::endl; //debug
-        if (container) {
-            container->toggleOffset(PageToggle::UP);
-        } else {
-            std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
-        }
-        return MenuState::NONE;
+    std::cout << "ScoreUp Clicked again ? " << std::endl; //debug
+    if (container) {
+        container->toggleOffset(PageToggle::UP);
+    } else {
+        std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
+    }
+    return MenuState::NONE;
 };
 
 MenuState ScoreBackButton::onClick(Menu* container) const {
-        
-        if (container) {
-            container->toggleOffset(PageToggle::TOP);
-        } else {
-            std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
-        }
-        return MenuState::BACK;
+    if (container) {
+        container->toggleOffset(PageToggle::TOP);
+    } else {
+        std::cout << "Warning: ScoreUpButton did not receive container pointer " << container << std::endl;
+    }
+    return MenuState::BACK;
 };
+
+MenuState CharacterSelectButton::onClick(Menu* container) const {
+    if (container) {
+        container->setCharacterSelection(_characterName); // TODO: make this more robust
+    } else {
+        std::cout << "Warning: CharacterSelectButton did not receive container pointer " << container << std::endl;
+    }
+    return MenuState::NONE;
+}
+
 
 
 // ***************************** Table Defs *********************************** //
@@ -283,7 +327,7 @@ void TableWindow::UpdateCells(int offset){
     }
 }
 
-//  ***************************** Menu Defs *********************************** //
+//  ***************************** Menu Defs *************************************************** //
 void Menu::Render() {
     _window->Render(_renderer); // window first so buttons are on top
     for (const auto& button : _buttons) {
@@ -308,17 +352,18 @@ MenuState Menu::queryButtons(const SDL_Event& e) {
     for (auto& button : _buttons) {
         if (button->wasClicked(mouseClick)) {
             buttonClicked = true;
-            //debug
-            // std::cout << "Click! : " << static_cast<int>(button->onClick(nullptr)) << " "; 
+            Button *temp = button.get();
+            toggleSelectedButton(temp); 
             button->printLabel();
             return button->onClick(this);
         }
     }
     return MenuState::NONE;
 }
-
-MainMenu::MainMenu(SDL_Renderer* renderer) //tehchnically can use internal _renderer member
-    : Menu(renderer) {
+//tehchnically can use internal _renderer member... possible TODO
+MainMenu::MainMenu(SDL_Renderer* renderer) 
+    : Menu(renderer) // Main switches instantly, so disable select effect
+    {
         // Some vector stuff just for understanding
         // std::cout << "size: " << _buttons.size() << " capacity: " << _buttons.capacity() << std::endl;
         _buttons.reserve(4); // reserve space for 2 buttons
@@ -335,6 +380,7 @@ MainMenu::MainMenu(SDL_Renderer* renderer) //tehchnically can use internal _rend
     
         // Construct Window:
         _window = std::make_unique<Window>(renderer, "Welcome to Snake Game", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
+        _disableSelectEffect = true; // Main switches instantly, so disable effect
 }
 
 ScoreMenu::ScoreMenu(SDL_Renderer *renderer) : Menu(renderer) 
@@ -347,11 +393,65 @@ ScoreMenu::ScoreMenu(SDL_Renderer *renderer) : Menu(renderer)
     _window = std::make_unique<Window>(renderer, "High Scores!", SCORE_WINDOW_COLOR, SCORE_WINDOW_BORDER_COLOR, WIN_POSITION);
     _scoreTable = std::make_unique<TableWindow>(SCORE_TABLE_RECT, SCORE_CELL_COLOR, SCORE_CELL_BORDER_COLOR, SCORE_TEXT_COLOR, 5, 2);
     _scoreTable->buildGrid(renderer); // TODO: implement
+    _disableSelectEffect = true; 
 }
 void ScoreMenu::Render() {
     Menu::Render(); // render base window and buttons
     _scoreTable->Render(_renderer); // render score table on top
 };
+
+
+
+// TODO: again, can make a lot of this shared functionality more polymorphic
+void CharacterMenu::generateGridDimensions() 
+{
+
+    std::cout << "Number of Characters: " << NUM_CHARACTERS << std::endl; //debug
+    int grid_rows = (NUM_CHARACTERS + NUM_CHARACTER_GRID_COLUMNS - 1) / NUM_CHARACTER_GRID_COLUMNS; // ceiling division
+     _characterRects.reserve(NUM_CHARACTERS);
+    // int const grid_cols = 3;
+    // int const grid_rows = (NUM_CHARACTERS + grid_cols - 1) / grid_cols; // ceiling division
+    int const cell_width = (WIN_POSITION.w - (NUM_CHARACTER_GRID_COLUMNS + 1) * CHARACTER_BUTTON_PADDING_X) / NUM_CHARACTER_GRID_COLUMNS;
+    // int const cell_height = (WIN_POSITION.h - (NUM_CHARACTER_GRID_COLUMNS + 1) * CHARACTER_BUTTON_PADDING_Y) / grid_rows;
+    int const cell_height = cell_width; // Default to square cells
+
+    for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        int row = i / NUM_CHARACTER_GRID_COLUMNS;
+        int col = i % NUM_CHARACTER_GRID_COLUMNS;
+        SDL_Rect rect = {
+            WIN_POSITION.x + CHARACTER_BUTTON_PADDING_X + col * (cell_width + CHARACTER_BUTTON_PADDING_X),
+            WIN_POSITION.y + CHARACTER_BUTTON_PADDING_Y + row * (cell_height + CHARACTER_BUTTON_PADDING_Y),
+            cell_width,
+            cell_height
+        };
+        _characterRects.push_back(rect);
+        std::cout << "Character Rect " << i << ": (" << rect.x << ", " << rect.y << ", " << rect.w << ", " << rect.h << ")\n"; //debug
+    }
+}
+
+
+
+CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){ 
+
+    generateGridDimensions();
+    assert(_characterRects.size() == NUM_CHARACTERS && "Something off with num characters grid gen"); // sanity check
+    // assert(CHARACTER_GRID_COLUMNS <= characterNames.size() && 
+    // "(CHARACTER_GRID_COLUMNS) Use at least many columns as characters for better formatting results")
+
+    _buttons.reserve(NUM_CHARACTERS + 1);
+    _buttons.emplace_back(std::make_unique<BackButton>(_renderer)); // TODO (Maybe): Make an "Enter" or "Ok" button
+    for ( int i = 0; i < NUM_CHARACTERS; ++i) {
+        _buttons.emplace_back(
+            std::make_unique<CharacterSelectButton>(_renderer, i, _characterRects[i])
+        );
+    }
+
+    _window = std::make_unique<Window>(renderer, "Select Your Character:", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
+
+}
+
+
+
 
 PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer) 
 {
@@ -360,6 +460,7 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
     _buttons.emplace_back(std::make_unique<StartButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
     _window = std::make_unique<Window>(renderer, "Enter Player Name: ", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
     _textEntry = std::make_unique<InputWindow>(renderer, NAME_WIN_COLOR, NAME_WIN_BORDER_COLOR, NAME_WIN_POSITION, &_playerName);
+    _disableSelectEffect = true; 
 }
 void PlayerEntryMenu::Render() {
     Menu::Render(); // render base window and buttons

@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <array>
 
+#include "menu.h" //TODO: remove the map files from here
+
 class Snake {
  public:
   enum class Direction { kUp, kDown, kLeft, kRight };
@@ -88,12 +90,7 @@ class Snake {
 //       };
 //   };
 
-// Character Options
-enum CharacterEnum {
-    Sammy,
-    Cindy
-};
 
-extern std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles;
+static std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = characterFileMap; ;
 
 #endif

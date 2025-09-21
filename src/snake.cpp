@@ -126,17 +126,4 @@ void Snake::InitDiesTexture(SDL_Renderer* renderer, const std::string& path) {
     snake_dies_texture = InitTexture(renderer, path);
 }
 
-inline std::string appendRoot(std::string path){
-    return std::string(PROJECT_ROOT_PATH) + path;
-}
 
-std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = {
-    {Sammy,  {appendRoot("/assets/snake_green_head.bmp"), 
-              appendRoot("/assets/snake_green_blob.bmp"),
-              appendRoot("/assets/snake_green_xx.bmp")}
-    },
-    {Cindy,  {appendRoot("/assets/snake_yellow_head.bmp"), 
-              appendRoot("/assets/snake_yellow_blob.bmp"),
-              appendRoot("/assets/snake_yellow_xx.bmp")}
-    },
-};

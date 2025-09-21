@@ -49,6 +49,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   snake.InitHeadTexture(renderer.get(), characterSpriteFiles[character][0]);
   snake.InitBodyTexture(renderer.get(), characterSpriteFiles[character][1]);
   snake.InitDiesTexture(renderer.get(), characterSpriteFiles[character][2]);
+  //TODO probably move the hawk texture into this as well (??)
 
   while (running) {
     frame_start = SDL_GetTicks();
