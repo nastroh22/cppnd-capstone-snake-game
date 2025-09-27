@@ -117,8 +117,8 @@ constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
 
 /* Character Menu Constants
 ------------------------------------------------*/
-enum CharacterEnum {Sammy, Cindy}; // arbitrary, but consistent naming
-const std::string CHARACTER_NAMES[]= {"Sammy", "Cindy"}; //for display
+enum CharacterEnum {Sammy, Sandy}; // arbitrary, but consistent naming
+const std::string CHARACTER_NAMES[]= {"Sammy", "Sandy"}; //for display
 constexpr SDL_Color CHARACTER_COLORS[] = {AVOCADO, GOLD};
 
 // Bitmap files
@@ -126,16 +126,16 @@ constexpr int NUM_CHARACTER_TEXTURES = 3; // head, body, dead
 const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFileMap = 
 {
     {CharacterEnum::Sammy, {
-            "../assets/snake_green_head.bmp", 
-            "../assets/snake_green_blob.bmp", 
-            "../assets/snake_green_xx.bmp"
+            "../assets/characters/snake_green_head.bmp", 
+            "../assets/characters/snake_green_blob.bmp", 
+            "../assets/characters/snake_green_xx.bmp"
         }
     },
-    {CharacterEnum::Cindy, 
+    {CharacterEnum::Sandy, 
         {
-            "../assets/snake_yellow_head.bmp", 
-            "../assets/snake_yellow_blob.bmp", 
-            "../assets/snake_yellow_xx.bmp"
+            "../assets/characters/snake_yellow_head.bmp", 
+            "../assets/characters/snake_yellow_blob.bmp", 
+            "../assets/characters/snake_yellow_xx.bmp"
         }
     }
 };
@@ -158,20 +158,20 @@ namespace Assets{
     inline constexpr int HAWK_ANIMATION_FRAMES = 6;
     inline constexpr int FLAP_RATE = 20; //frames per flap, discrete control over animation speed
     inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFiles = {
-        "../assets/hawk_000.bmp",
-        "../assets/hawk_001.bmp",
-        "../assets/hawk_002.bmp",
-        "../assets/hawk_003.bmp",
-        "../assets/hawk_004.bmp",
-        "../assets/hawk_006.bmp"
+        "../assets/enemies/hawk_000.bmp",
+        "../assets/enemies/hawk_001.bmp",
+        "../assets/enemies/hawk_002.bmp",
+        "../assets/enemies/hawk_003.bmp",
+        "../assets/enemies/hawk_004.bmp",
+        "../assets/enemies/hawk_006.bmp"
     };
     inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFilesLeft = {
-        "../assets/hawkL_000.bmp",
-        "../assets/hawkL_001.bmp",
-        "../assets/hawkL_002.bmp",
-        "../assets/hawkL_003.bmp",
-        "../assets/hawkL_004.bmp",
-        "../assets/hawkL_006.bmp"
+        "../assets/enemies/hawkL_000.bmp",
+        "../assets/enemies/hawkL_001.bmp",
+        "../assets/enemies/hawkL_002.bmp",
+        "../assets/enemies/hawkL_003.bmp",
+        "../assets/enemies/hawkL_004.bmp",
+        "../assets/enemies/hawkL_006.bmp"
     };
 
     //add playable characters

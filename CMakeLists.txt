@@ -29,7 +29,7 @@ include_directories(${SDL2_TTF_INCLUDE_DIR})
 
 # target
 add_executable(SnakeGame src/main.cpp src/game.cpp src/controller.cpp src/renderer.cpp 
-                            src/snake.cpp src/scoreio.cpp src/menu.cpp src/enemy/planner.cpp)
+                            src/snake.cpp src/menu.cpp src/enemy/planner.cpp)
 
 # link
 string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)

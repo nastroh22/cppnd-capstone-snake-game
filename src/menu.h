@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include "constants.h" //include Screen Dimensions
-#include "scoreio.h"
 #include "utils.h" 
 #include "SDL.h"
 #include "SDL_ttf.h"

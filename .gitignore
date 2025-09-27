@@ -4,3 +4,4 @@ CODEOWNERS
 .vscode
 src/ai/model.h
 src/ai/model.cpp
+local/*

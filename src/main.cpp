@@ -7,7 +7,6 @@
 #include "controller.h"
 #include "game.h"
 #include "renderer.h"
-#include "scoreio.h"
 #include "menu.h"
 #include "constants.h"
 #include "enemy/planner.h"

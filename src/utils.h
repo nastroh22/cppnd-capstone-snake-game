@@ -2,11 +2,15 @@
 #define CHARACTER_H
 
 #include <string>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <iostream>
+
 #include "SDL.h"
 
 
-// Refactor this to "render_utils" instead (or something) -- probably include text here as well
+/*********************  SDL Render Helpers *******************************************/
 namespace RenderUtils{
 
     inline SDL_Texture* InitTexture(SDL_Renderer* const renderer, const std::string& path) {
@@ -103,6 +107,8 @@ namespace RenderUtils{
     }
 }
 
+
+/*********************  String Helpers  *******************************************/
 namespace StringUtils{
     static void replace(std::string& str, const std::string& from, const std::string& to) {
         if(from.empty())
@@ -136,14 +142,140 @@ namespace StringUtils{
 //     int *parser = nullptr;
 // }
 
+/*********************  Score Utils *******************************************/
+namespace ScoreIO{
+    
+    namespace fs = std::filesystem;
+    const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / "scores.txt";
+
+    struct Entry {
+        std::string name;
+        int score;
+        bool operator>(const Entry& other) const {
+            return score > other.score; // For descending order
+        }
+    };
+
+    struct DisplayEntry {
+        std::string name;
+        std::string score;
+    };
+
+    //load score "vectors"
+    inline std::vector<std::vector<std::string>> load_scores(){
+
+        if (!fs::exists(PATH)) {
+            // Create an empty file
+            std::ofstream file(PATH);
+            if (!file) {
+                    std::cerr << "Failed to create score file at: " << PATH << "\n";
+            } else {
+                return {};
+            }
+        } 
+
+        std::ifstream file(PATH);
+        std::vector<std::vector<std::string>> scores;
+        
+        if (!file.is_open()) {
+            std::cerr << "Could not open score file: " << PATH << std::endl;
+            return {};
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::vector<std::string> entry = {"null","null"}; // if null displays, know there was parsing error
+            if (iss >> entry[0] >> entry[1]) {
+                StringUtils::replace(entry[0], "_", " "); // reverse the underscore replacement
+                scores.push_back(entry);
+            }
+            else {
+                std::cerr << "Warning: failed to parse line: " << line << std::endl;
+            }
+        }
+        std::cout << "Loaded " << scores.size() << " scores from file." << scores[0][0] << std::endl; //debug
+        return scores;
+    }
+
+    // Overload to handle struct Entry
+    inline std::vector<Entry> load_entries(){
+
+        if (!fs::exists(PATH)) {
+            // Create an empty file
+            std::ofstream file(PATH);
+            if (!file) {
+                    std::cerr << "Failed to create score file at: " << PATH << "\n";
+            } else {
+                return {};
+            }
+        } 
+
+        std::ifstream file(PATH);
+        std::vector<Entry> entries;
+        
+        if (!file.is_open()) {
+            std::cerr << "Could not open score file: " << PATH << std::endl;
+            return {};
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            Entry entry;
+            if (iss >> entry.name >> entry.score) {
+                entries.push_back(entry);
+            }
+            else {
+                std::cerr << "Warning: failed to parse line: " << line << std::endl;
+            }
+        }
+        return entries;
+    }
+
+    inline void save_score(Entry& new_entry){
+        // replace spaces with underscores for file storage
+        StringUtils::replace(new_entry.name, " ", "_");
+        std::vector<Entry> entries = load_entries();
+        entries.push_back(new_entry);
+        std::sort(entries.begin(), entries.end(), std::greater<Entry>());
+        if (entries.size() > 20) {
+            entries.resize(20); // Keep top 20 scores
+        }
+
+        // Save back to file (overwrite)
+        std::ofstream file(PATH, std::ios::trunc);  // `trunc` clears the file
+        if (!file) {
+            std::cerr << "Failed to open score file for writing.\n";
+            return;
+        }
+
+        for (const Entry& entry : entries) {
+            file << entry.name << " " << entry.score << '\n';
+        }
+    }
+
+    inline void print_scores() {
+        std::vector<Entry> entries = load_entries();
+        std::cout << "---- High Scores ----\n";
+        for (const Entry& entry : entries) {
+            std::cout << entry.name << ": " << entry.score << '\n';
+        }
+        std::cout << "---------------------\n";
+    }
+}
+
+
 #endif 
 
-/* More Utils to Consider: 
 
 
+
+
+/* 
+---- More Utils to Consider ------
 // Probabluy Keep AppendRoot although ../assets path should be fine
 inline std::string appendRoot(std::string path){
     return std::string(PROJECT_ROOT_PATH) + path;
 }
-
 */
