@@ -8,7 +8,7 @@
 // Refactor this to "render_utils" instead (or something) -- probably include text here as well
 namespace RenderUtils{
 
-    static SDL_Texture* InitTexture(SDL_Renderer* const renderer, const std::string& path) {
+    inline SDL_Texture* InitTexture(SDL_Renderer* const renderer, const std::string& path) {
         SDL_Surface* surface = SDL_LoadBMP(path.c_str());
         if (!surface) {
             std::cerr << "Failed to load BMP file: " << path  << " " << SDL_GetError() << std::endl;
@@ -26,7 +26,6 @@ namespace RenderUtils{
         return texture;
     };
 
-
     // Try this approach of reading in textures directly from a map of key/filepath pairs
    inline std::unordered_map<std::string, SDL_Texture*>
     loadTexturesFromMap(SDL_Renderer* renderer, const std::unordered_map<std::string, std::string>& files) {
@@ -43,8 +42,23 @@ namespace RenderUtils{
         return textures;
     }
 
+    template<size_t N>
+    inline std::array<SDL_Texture*, N>
+    loadTexturesFromArray(SDL_Renderer* renderer, const std::array<std::string, N>& files) {
+        std::array<SDL_Texture*, N> textures = {nullptr};
 
-    static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
+        for (size_t i = 0; i < files.size(); ++i) {
+            SDL_Texture* tex = InitTexture(renderer, files[i]);
+            if (tex) {
+                textures[i] = tex;
+            } else {
+                std::cerr << "Texture load failed for index " << i << " from path: " << files[i] << "\n";
+            }
+        }
+        return textures;
+    }
+
+    inline void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 
         // Top
@@ -63,6 +77,9 @@ namespace RenderUtils{
         SDL_Rect right = {rect.x + rect.w - thickness, rect.y, thickness, rect.h};
         SDL_RenderFillRect(renderer, &right);
     }
+
+    //minimal representation of all game items that Renderer can parse to render
+    struct Item {std::string name; int x; int y;};
 
     // Refactor this to "render_utils" instead (or something) -- probably include text here as well
     class Hawk {

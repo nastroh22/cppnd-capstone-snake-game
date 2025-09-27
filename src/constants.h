@@ -61,6 +61,45 @@ constexpr SDL_Color SELECT_BORDER_COLOR = RETRO_BLUE; // for selected effect
 constexpr SDL_Color BACKGROUND_COLOR = BLACK;
 
 
+// namespace Defaults { 
+//     constexpr SDL_Color BUTTON_COLOR = GREY;
+//     constexpr SDL_Color BUTTON_HOVER_COLOR = HOVER_BORDER_COLOR;
+//     constexpr SDL_Color BUTTON_SELECT_COLOR = SELECT_BORDER_COLOR;
+//     constexpr SDL_Color WINDOW_COLOR = SLATE;
+//     constexpr SDL_Color WINDOW_BORDER_COLOR = WHITE;
+//     constexpr SDL_Rect WIN_POSITION = {
+//         static_cast<int>(0.1 * kScreenWidth), 
+//         static_cast<int>(0.1 * kScreenHeight),
+//         static_cast<int>(0.8 * kScreenWidth), 
+//         static_cast<int>(0.8 * kScreenHeight)
+//     };
+// }
+
+
+
+// constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
+constexpr SDL_Color DEFAULT_HOVER_COLOR = LEMON;
+
+
+// Further Bundling of Menu Components
+// struct PlayButton {
+//     constexpr SDL_Color COLOR = MOSS;
+//     constexpr SDL_Color HOVER_COLOR = HOVER_BORDER_COLOR;
+//     constexpr SDL_Color SELECT_COLOR = FIRE;
+//     constexpr SDL_Rect  RECT = {220, 150, 200, 75};
+//     // rect etc.
+// };
+
+
+// struct CharMenuButton {
+//     constexpr SDL_Color COLOR = OLIVE;
+//     constexpr SDL_Color HOVER_COLOR = DEFAULT_HOVER_COLOR;
+//     constexpr SDL_Color SELECT_COLOR = FIRE;
+//     constexpr SDL_Rect  BUTTON_RECT = {220, 250, 200, 75}; 
+// };
+// Maybe group by menus instead... buttons being visually close helps see the layout
+
+
 
 /* MENU COLOR THEMES
 ----------------------------------------------*/
@@ -110,13 +149,35 @@ namespace Assets{
         // Add more as needed
     };
 
-    inline std::array<std::string, 5> itemNames = {"dot", "cherries", "banana", "star", "bomb"};
-    inline std::array<float, 5> itemProbs = {0.25, 0.25, 0.25, 0.15, 0.10}; // dot, cherry, banana, star, bomb
-    inline std::array<float, 5> itemScores = {1.0, 1.0, 1.0, 10.0, -5.0}; 
+    inline const std::array<std::string, 5> itemNames = {"dot", "cherries", "banana", "star", "bomb"};
+    inline constexpr std::array<double, 5> itemProbs = {0.25, 0.25, 0.25, 0.15, 0.10}; // dot, cherry, banana, star, bomb
+    inline constexpr std::array<double, 5> itemScores = {1.0, 1.0, 1.0, 10.0, -5.0}; 
 
-    //add hawk
+    // hawk animation
+    inline constexpr int HAWK_ANIMATION_FRAMES = 6;
+    inline constexpr int FLAP_RATE = 20; //frames per flap, discrete control over animation speed
+    inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFiles = {
+        "../assets/hawk_000.bmp",
+        "../assets/hawk_001.bmp",
+        "../assets/hawk_002.bmp",
+        "../assets/hawk_003.bmp",
+        "../assets/hawk_004.bmp",
+        "../assets/hawk_006.bmp"
+    };
+    inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFilesLeft = {
+        "../assets/hawkL_000.bmp",
+        "../assets/hawkL_001.bmp",
+        "../assets/hawkL_002.bmp",
+        "../assets/hawkL_003.bmp",
+        "../assets/hawkL_004.bmp",
+        "../assets/hawkL_006.bmp"
+    };
 
     //add playable characters
+
+
+    // Future Extensions, add more enemies. Make Configurable via level state variables.
+
 }
 
 

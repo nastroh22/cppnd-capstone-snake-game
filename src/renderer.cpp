@@ -45,11 +45,12 @@ Renderer::Renderer(const std::size_t screen_width,
     sdl_renderer,
     Assets::itemTextureMap
   );
-  for (const auto& [key, texture] : _item_textures) {
-    std::cout << "Loaded texture key: " << key << '\n';
-  }
-
-                                           
+  _hawk_textures = RenderUtils::loadTexturesFromArray(
+    sdl_renderer,
+    Assets::hawkTextureFiles
+  );
+  _hawk_it = _hawk_textures.begin();
+                                        
 }
 
 Renderer::~Renderer() {
@@ -60,10 +61,12 @@ Renderer::~Renderer() {
 void Renderer::Render(
     Snake const &snake, 
     const Food *food, 
-    std::string &render_item,
+    RenderUtils::Item &item,
     const SDL_Point ai_location,
     SDL_Texture* ai_texture) 
 { 
+
+ 
   SDL_Rect block;
   SDL_Rect enemy;
   block.w = screen_width / grid_width;
@@ -73,25 +76,30 @@ void Renderer::Render(
   SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
   SDL_RenderClear(sdl_renderer);
 
-  // Render food
-  // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
-  block.x = food->get_x() * block.w;
-  block.y = food->get_y() * block.h;
-  block.x = food->get_x() * block.w;
-  block.y = food->get_y() * block.h;
-  
-  std::cout << "First access to the map? " << std::endl;
-  SDL_Texture *from_map = _item_textures[render_item];
-  SDL_RenderCopy(sdl_renderer, from_map, nullptr, &block); // "block" is already an SDL_rect
+  // Render item
+  block.x = item.x * block.w;
+  block.y = item.y * block.h;
+  SDL_RenderCopy(sdl_renderer, _item_textures[item.name], nullptr, &block); 
 
   // AI Texture
   enemy.w = block.w; 
   enemy.h = block.h;
   enemy.x = ai_location.x * block.w; 
   enemy.y = ai_location.y * block.h;
+  _prev_x = enemy.x; // store previous x position for direction check
+
   enemy.w *= 1.45;
   enemy.h *= 1.45; //scale size a bit
-  SDL_RenderCopy(sdl_renderer, ai_texture, nullptr, &enemy);
+  _flap_frame_count++;
+  if (_flap_frame_count >= Assets::FLAP_RATE) {
+    _hawk_it++;
+    _flap_frame_count = 0;
+  } // control flap rate
+  if (_hawk_it == _hawk_textures.end()) {
+    _hawk_it = _hawk_textures.begin();
+  } // reset to start
+  // switch rotation to the index instead
+  SDL_RenderCopy(sdl_renderer, *_hawk_it, nullptr, &enemy);
 
   // Render snake's body
   // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);

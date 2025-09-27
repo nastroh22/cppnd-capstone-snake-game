@@ -82,4 +82,6 @@ class Planner {
         SDL_Point goal = SDL_Point{2,2}; // Location of the player
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
         SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering
+
+        
 };

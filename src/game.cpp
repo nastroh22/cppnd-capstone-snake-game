@@ -26,13 +26,15 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       engine(dev()),
       random_food(0, 1),
       random_w(0, static_cast<int>(grid_width - 1)),
-      random_h(0, static_cast<int>(grid_height - 1)){
+      random_h(0, static_cast<int>(grid_height - 1)),
+      item_choice(Assets::itemProbs.begin(), Assets::itemProbs.end())
+  {
 
   // Pass Renderer here to init textures at construction
   // I am also tempted to store queues as class variables
 
   AddFoods<Banana, Cherries, Dot, Star, Bomb>(foods);
-  PlaceFood();
+  PlaceItem();
 
 
 }
@@ -72,7 +74,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update(ai_location);
-    renderer.Render(snake, food, _render_item, ai_location, ai_texture);
+    renderer.Render(snake, food, itemStruct, ai_location, ai_texture);
 
     frame_end = SDL_GetTicks();
 
@@ -117,24 +119,19 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   }
 }
 
-void Game::PlaceFood() {
+void Game::PlaceItem() { 
+  // random choice
+  itemStruct.name = Assets::itemNames[item_choice(engine)];
   int x, y;
   while (true) {
-    
     // random location
     x = random_w(engine);
     y = random_h(engine);
 
-    std::discrete_distribution<> dist(
-      Assets::itemProbs.begin(), Assets::itemProbs.end()
-    );
-    int item_index = dist(engine);
-    _render_item=Assets::itemNames[item_index];
-    food = foods[0].get();
-    
+    // can't collide
     if (!snake.SnakeCell(x, y)) {
-      food->set_position(x, y);
-      std::cout << "Returns?" << std::endl;
+      itemStruct.x = x;
+      itemStruct.y = y;
       return;
     }
   }
@@ -149,9 +146,9 @@ void Game::Update(SDL_Point const &ai_location) {
   int new_y = static_cast<int>(snake.head_y);
 
   // Check if there's food over here
-  if (food->get_x() == new_x && food->get_y() == new_y) {
+  if (itemStruct.x == new_x && itemStruct.y == new_y) {
     score++;
-    PlaceFood();
+    PlaceItem();
     // Grow snake and increase speed.
     snake.GrowBody();
     snake.speed += 0.02;

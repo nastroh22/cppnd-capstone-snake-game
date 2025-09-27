@@ -11,6 +11,7 @@
 #include "queue.h"
 #include "enemy/planner.h"
 #include "snake.h"
+#include "constants.h"
 
 class Game {
  public:
@@ -34,6 +35,10 @@ class Game {
   std::vector<std::unique_ptr<Food>> foods;
   SDL_Point ai_location; // store last location from AI
 
+  RenderUtils::Item itemStruct {"dot",0,0};
+  RenderUtils::Item snakeStruct {"snake",0,0}; //Snake has more complexity, so keep class but dynamically update it's render file
+  RenderUtils::Item hawkStruct {"hawk",0,0};
+
   std::random_device dev;
   std::mt19937 engine;
   std::uniform_int_distribution<int> random_w;
@@ -44,7 +49,7 @@ class Game {
 
   int score{0};
 
-  void PlaceFood();
+  void PlaceItem();
   void Update(SDL_Point const &ai_location);
 };
 
