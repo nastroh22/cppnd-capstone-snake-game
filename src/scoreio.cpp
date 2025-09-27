@@ -6,6 +6,7 @@
 #include <fstream>
 #include <filesystem>
 #include "scoreio.h"
+#include "utils.h"
 
 
 namespace fs = std::filesystem;
@@ -13,7 +14,7 @@ namespace fs = std::filesystem;
 
 namespace ScoreIO{
 
-    const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / ".scores.txt";
+    const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / "scores.txt";
 
     std::vector<std::vector<std::string>> load_scores(){
 
@@ -40,6 +41,7 @@ namespace ScoreIO{
             std::istringstream iss(line);
             std::vector<std::string> entry = {"null","null"}; // if null displays, know there was parsing error
             if (iss >> entry[0] >> entry[1]) {
+                StringUtils::replace(entry[0], "_", " "); // reverse the underscore replacement
                 scores.push_back(entry);
             }
             else {
@@ -85,8 +87,9 @@ namespace ScoreIO{
         return entries;
     }
 
-    void save_score(const Entry& new_entry){
-
+    void save_score(Entry& new_entry){
+        // replace spaces with underscores for file storage
+        StringUtils::replace(new_entry.name, " ", "_");
         std::vector<Entry> entries = load_entries();
         entries.push_back(new_entry);
         std::sort(entries.begin(), entries.end(), std::greater<Entry>());

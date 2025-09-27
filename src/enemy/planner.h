@@ -9,33 +9,16 @@
 #include <atomic>
 #include <optional>
 
-// NOTE: Rendenrer is using a subgrid, which will make A* more feasible actually
+// NOTE: Renderer is using a subgrid, which could make A* more feasible actually (future version)
 // kGridWidth, kGridHeight
 
-class Node {
-    public:
-        Node() = default;
-        ~Node() = default;
 
-        SDL_Point position;
-        Node * parent = nullptr;
-        float h_value = std::numeric_limits<float>::max();
-        float g_value = 0.0;
-        bool visited = false;
-        std::vector<Node *> neighbors;
+// TODO: probably move "Hawk" here
 
-        float distance(const Node& other) const {
-            return std::sqrt(std::pow((position.x - other.position.x), 2) + std::pow((position.y - other.position.y), 2));
-        }
-        bool operator>= (const Node &other){
-            return ((h_value + g_value) >= (other.h_value + other.g_value));
-        };
-    //private:
-};
+// Possible extension with the "Fox" character as well 
 
-bool inline Compare(Node *a , Node *b){
-        return ((a->h_value + a->g_value) >= (b->h_value + b->g_value));
-};
+// TODO: and another extension would be multiple hawks or 'swarms' (which glide across screen in some random pattern, then exit)
+
 
 // NOTE: maybe store the hawk texture here instead
 class Planner {
@@ -48,13 +31,19 @@ class Planner {
         ~Planner() = default;
 
         SDL_Point getNextMove();
-        void publishMove() {_publisher->receive(std::move(_next_move));};
-        void subscribeGoal() {
-            std::optional<SDL_Point> temp = _subscriber->send(); 
+        void publishMove() {
             if (_shutdown_flag->load()){
                 _running = false; // break loop
                 return;
             }
+            _publisher->receive(std::move(_next_move));
+        };
+        void subscribeGoal() {
+            if (_shutdown_flag->load()){
+                _running = false; // break loop
+                return;
+            }
+            std::optional<SDL_Point> temp = _subscriber->send(); 
             if (!temp.has_value()){ // do nothing, but should only happen in shutdown
                 std::cout << "Planner did not receive goal, continue with last value" << std::endl;
                 return;
@@ -72,21 +61,8 @@ class Planner {
         void checkPubqSize() const {std::cout << "Publisher Queue Size: "; _publisher->size();};
         void checkSubqSize() const {std::cout << "Subscriber Queue Size: "; _subscriber->size();};
         void resetPosition() { x = 1.0; y = 1.0;}; // reset to corner
-
-        // A* helper methods
-        // float calculateHValue(Node const *node) {float h = end_node->distance(*node); return h;};
-        // void Planner::AddNeighbors(Model::Node *current_node);
-        // Node *Planner::NextNode();
-        // std::vector<Node> ConstructFinalPath(Node *current_node);
-        
-        // void AStarSearch(){
-        //     Node *current_node = start_node;
-        //     while (true){
-        //         AddNeighbors(current_node);
-        //         current_node = NextNode();
-        //         if (current_node == end_node){break;}
-        //     }
-        // };
+        bool run(); // main loop
+        void debugRunFlag() const {std::cout << "Running? " << _running << std::endl;};
 
     private:
         // Update to shared pointer eventually? (NOTE: threads make less sense for simple behavior)
@@ -106,11 +82,4 @@ class Planner {
         SDL_Point goal = SDL_Point{2,2}; // Location of the player
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
         SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering
-
-        // TODO: Implement message queues
-        // TODO: A* stuff
-        // Node start_node;
-        // Node end_node;
-        // Node current_node;
-        // std::vector<Node *> open_list; // TODO (possibly?): change to priority queue
 };

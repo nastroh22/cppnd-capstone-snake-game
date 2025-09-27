@@ -1,12 +1,9 @@
 #include "food.h"
 
-
-// fancier way, smart pointer with custom deleter
-// struct SDLTextureDeleter {
-//     void operator()(SDL_Texture* texture) const {
-//         if (texture) SDL_DestroyTexture(texture);
-//     }
-// };
+// FUTURE TODO's:
+// Add bomb (which removes part of snake body)
+// Add powerup (which increases speed for a time? STAR = temporary invulnerable)
+// Possible stepping stone for pacman as well would be giving snake's ability to "eat" enemies
 
 //TODO: update this to get rid of const variables (use once)
 Food::Food(const std::string& name, const std::string& asset_file) 

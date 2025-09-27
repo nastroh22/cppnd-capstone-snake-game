@@ -7,46 +7,6 @@
 #include "scoreio.h"
 #include <cassert>
 
-//***************************** Helper ***************************************** */
-
-//TODO: Make this polymorphic class function  (Button derives from Window)
-static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    // Top
-    SDL_Rect top = {rect.x, rect.y, rect.w, thickness};
-    SDL_RenderFillRect(renderer, &top);
-
-    // Bottom
-    SDL_Rect bottom = {rect.x, rect.y + rect.h - thickness, rect.w, thickness};
-    SDL_RenderFillRect(renderer, &bottom);
-
-    // Left
-    SDL_Rect left = {rect.x, rect.y, thickness, rect.h};
-    SDL_RenderFillRect(renderer, &left);
-
-    // Right
-    SDL_Rect right = {rect.x + rect.w - thickness, rect.y, thickness, rect.h};
-    SDL_RenderFillRect(renderer, &right);
-}
-
-std::string strip(const std::string& str) {
-    size_t start = 0;
-    size_t end = str.length();
-
-    // Find first non-whitespace character
-    while (start < end && std::isspace(static_cast<unsigned char>(str[start]))) {
-        ++start;
-    }
-
-    // Find last non-whitespace character
-    while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1]))) {
-        --end;
-    }
-
-    return str.substr(start, end - start);
-}
-
 // ***************************** Text Defs  *********************************** //
 Text::Text(
     SDL_Renderer *renderer,
@@ -55,10 +15,10 @@ Text::Text(
     const std::string &message_text,
     SDL_Color color) : _color(color)
 {
-    _text_texture = loadFont(renderer, font_path, font_size, message_text, color);
+    loadFont(renderer, font_path, font_size);
+    _text_texture = makeTexture(renderer, message_text, _color);
     if (!_text_texture) {
         std::cerr << "Failed to load text texture." << std::endl;
-        //todo raise exception
     }
     SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
     std::cout << "Loaded Text: " << message_text << std::endl;
@@ -68,35 +28,36 @@ void Text::display(SDL_Renderer *renderer, int x, int y) const
     _text_rect.x = x;
     _text_rect.y = y;
     SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
-    // std::cout << "Displayed Text" << message << std::endl;
 }
 
 void Text::displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message) {
     _text_rect.x = x;
     _text_rect.y = y;
     if (_text_texture) {
+        // TTF_CloseFont(_font);
         SDL_DestroyTexture(_text_texture);
         _text_texture = nullptr;
     }
-    _text_texture = loadFont(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, message, _color); // TODO - store color and font_size
+    _text_texture = makeTexture(renderer, message, _color); // TODO - store color and font_size
     SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
     SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
-    // std::cout << "Displayed Text" << message << std::endl;
 }
 
-SDL_Texture *Text::loadFont(SDL_Renderer *renderer, const std::string &font_path, int font_size, const std::string &message_text, SDL_Color& color)
+void Text::loadFont(SDL_Renderer *renderer, const std::string &font_path, int font_size)
 {
-    TTF_Font *font = TTF_OpenFont( font_path.c_str(), font_size);
-    if (!font) {
+    _font = TTF_OpenFont(font_path.c_str(), font_size);
+    if (!_font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-        return nullptr;
     }
+}
 
-    auto text_surface = TTF_RenderText_Solid(font, message_text.c_str(), color);
+SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &message_text, SDL_Color& color)
+{
+    auto text_surface = TTF_RenderText_Solid(_font, message_text.c_str(), color);
 
     if (!text_surface) {
         std::cerr << "Failed to create text surface: " << TTF_GetError() << std::endl;
-        TTF_CloseFont(font);
+        TTF_CloseFont(_font);
         return nullptr;
     }
     
@@ -104,21 +65,17 @@ SDL_Texture *Text::loadFont(SDL_Renderer *renderer, const std::string &font_path
     if (!text_texture) {
         std::cerr << "Failed to create text texture: " << SDL_GetError() << std::endl;
     }
-    // std::cout << "Loaded Font" << std::endl;
 
     SDL_FreeSurface(text_surface);
     return text_texture;
 }
-// ***************************** Window Defs  *********************************** //
+
+// ************************************ Window Defs  ************************************************** //
 void Window::Render(SDL_Renderer* renderer){
-    // draw color
+    // drawing
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
-
-    // draw border
-    // SDL_SetRenderDrawColor(renderer, _borderColor.r, _borderColor.g, _borderColor.b, _borderColor.a);
-    // SDL_RenderDrawRect(renderer, &_windowRect);
-    drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
+    RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
 
     // render title
     _title.display(renderer, 
@@ -127,14 +84,14 @@ void Window::Render(SDL_Renderer* renderer){
     );
 }
 
-// NOTE: can actually deprecate this custom render and just store this loagic at class level with _text_x, _text_y
+// NOTE: (TODO) can actually deprecate this custom render and just store this loagic at class level with _text_x, _text_y
 void Cell::Render(SDL_Renderer* renderer){
     // draw color
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
 
     // draw border
-    drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
+    RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
     if (_shouldUpdate) {
         _title.displayDynamic(renderer, _text_x, _text_y, _cellText);
         _shouldUpdate = false;
@@ -146,23 +103,18 @@ void Cell::Render(SDL_Renderer* renderer){
 void InputWindow::Render(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
-    drawBorder(renderer, _windowRect, 1, _borderColor); // thickness of 2
-    // render dynamic text if applicable (NOTE: need to clean this text)
-    // Better Approach is interior window "DynamicText" object that can be updated or rather "InputWindow"
-    // std::cout << "Check Width" << _windowRect.x + 20 << " " << _windowRect.y + 60 << std::endl; //debug
+    RenderUtils::drawBorder(renderer, _windowRect, 1, _borderColor);
+    // (TODO?) Better Approach is interior window "DynamicText" object that can be updated or rather "InputWindow"
     if ((_playerInput) && !_playerInput->empty()) {
-        // std::cout << "Should Render " << *_playerInput << std::endl; //debug
-        // std::cout <<  _windowRect.x << std::endl;
-        std::cout << _playerInput->empty() << std::endl;
         _inputText.displayDynamic(renderer, 
             _windowRect.x + 20, // some padding from left
             _windowRect.y + 20, // below title
-            *_playerInput
+            *_playerInput // TODO: make this a refnerence instead ?
         );
     }
 }
 
-//  ***************************** Button Defs  *********************************** //
+//  ***************************************** Button Defs  **************************************************** //
 void Button::toggleHover(const SDL_Point& mousePoint) {
     
     if (_freeze_border) { return; } // don't change hover state if frozen
@@ -197,7 +149,7 @@ void Button::Render(SDL_Renderer* renderer){
     SDL_RenderFillRect(renderer, &_buttonRect);
 
     // draw border
-    drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
+    RenderUtils::drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
 
     // render text
     _text.display(renderer, _textX, _textY);
@@ -210,7 +162,7 @@ void ImageButton::Render(SDL_Renderer* renderer){
     SDL_RenderFillRect(renderer, &_buttonRect);
 
     // draw border
-    drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
+    RenderUtils::drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
 
     int title_offset = 15;
     setY(_buttonRect.y + 10); // text y position (redunant)
@@ -270,7 +222,7 @@ MenuState CharacterSelectButton::onClick(Menu* container) const {
 
 
 
-// ***************************** Table Defs *********************************** //
+// **************************************** Table Defs ******************************************************* //
 void TableWindow::buildGrid(SDL_Renderer *renderer) {
     // TODO: this is not yet general, builds in assumptions about scoreTable (i.e. data type, cols=2)
     // possibly use overloading
@@ -286,20 +238,24 @@ void TableWindow::buildGrid(SDL_Renderer *renderer) {
     gridSpec.clear(); // should only be built once, but in case
     gridSpec.resize(_rows);
     std::cout << "Inside buildGrid, gridSpec size: " << gridSpec.size() << gridData.size() << std::endl; //debug
+    int width_adjust = 0;
+    int prev_width = 0;
 
     for (int i = 0; i < _rows; ++i) {
         
-        std::cout << "tries to get griddata" << std::endl; //debug
+        // std::cout << "tries to get griddata" << std::endl; //debug
         std::vector<std::string> entry = gridData[i];
         gridSpec[i].reserve(_cols); // avoid multiple allocations
-        
+
         for (int j = 0; j < _cols; ++j) {
-            // std::string initial_text = (j == 0) ? 
-            //     entry.name : std::to_string(entry.score);
+            
+            width_adjust = (j % 2 == 0) ? cellWidth+90 : cellWidth-90;
+            std::cout << "Wudth adjusted : " << width_adjust << std::endl; //debug
+
             SDL_Rect cellRect = { //tight layout
-                _tableRect.x + j * cellWidth,
+                _tableRect.x + j * prev_width,
                 _tableRect.y + i * cellHeight,
-                cellWidth,
+                width_adjust,
                 cellHeight
             };
             gridSpec[i].emplace_back(
@@ -312,6 +268,8 @@ void TableWindow::buildGrid(SDL_Renderer *renderer) {
                 _textColor
             );
             if (j % 2 == 0) {gridSpec[i][j].leftJustify();} // name column
+            prev_width = width_adjust;
+            
         }
     }
     for (const auto& item : gridData) {
@@ -349,13 +307,11 @@ MenuState Menu::queryButtons(const SDL_Event& e) {
         return MenuState::NONE; // or some other default state
     }
     SDL_Point mouseClick = {e.button.x, e.button.y };
-    std::cout << "Mouse Click Lag? " << mouseClick.x << " " << mouseClick.y << std::endl;
     for (auto& button : _buttons) {
         if (button->wasClicked(mouseClick)) {
             buttonClicked = true;
             Button *temp = button.get();
             toggleSelectedButton(temp); 
-            button->printLabel();
             return button->onClick(this);
         }
     }
@@ -430,8 +386,6 @@ void CharacterMenu::generateGridDimensions()
     }
 }
 
-
-
 CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){ 
 
     generateGridDimensions();
@@ -451,8 +405,6 @@ CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){
 
 }
 
-
-
 PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer) 
 {
     _buttons.reserve(2);
@@ -464,15 +416,18 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
 }
 void PlayerEntryMenu::Render() {
     Menu::Render(); // render base window and buttons
+    toggleCursor(); // handle cursor blinking
+    //NOTE: probably want to (TODO) make a separate display string to avoid erroneous |'s added to name
     _textEntry->Render(_renderer); // render input window on top
 }
 
-std::string PlayerEntryMenu::getPlayerName() const {
-    return strip(_playerName); // remove leading/trailing whitespace
+std::string PlayerEntryMenu::getPlayerName() {
+    StringUtils::replace(_playerName, "|", ""); // remove cursor if present
+    return StringUtils::strip(_playerName); // remove leading/trailing whitespace
 }
 
 MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
-    std::cout << "Getting Name Input: " << _playerName << std::endl; //debug
+
     if (event.type == SDL_QUIT) {
         // Handle quit
     }
@@ -488,5 +443,29 @@ MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
         }
     }
     return MenuState::NONE; // or some other default state
+};
+
+void PlayerEntryMenu::toggleCursor()
+{
+    Uint32 current_time = SDL_GetTicks();
+    std::cout << "Current Time: " << current_time << " Last Toggle Time: " << _lastToggleTime << std::endl; //debug
+    if (current_time -  _lastToggleTime > CURSOR_BLINK_INTERVAL_MS) {
+        std::cout << "Toggle Cursor Blink" << std::endl; //debug
+         _lastToggleTime = current_time;
+        cursor_visible = !cursor_visible;
+        if (cursor_visible) {
+            _playerName += '|'; // Add cursor
+            std::cout << "Cursor On: " << _playerName << std::endl; //debug
+        } else {
+            if (!_playerName.empty() && _playerName.back() == '|') {
+                _playerName.pop_back(); // Remove cursor
+            }
+        }
+        // Update the displayed text
+        if (!cursor_visible && !_playerName.empty() && _playerName.back() == '|') {
+            _playerName.pop_back(); // Ensure cursor is removed when not visible
+            std::cout << "Cursor Off: " << _playerName << std::endl; //debug
+        }
+    }
 }
 

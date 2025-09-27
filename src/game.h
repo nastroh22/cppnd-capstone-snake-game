@@ -9,7 +9,7 @@
 #include "food.h"
 #include <memory>
 #include "queue.h"
-#include "ai/planner.h"
+#include "enemy/planner.h"
 #include "snake.h"
 
 class Game {

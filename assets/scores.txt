@@ -3,6 +3,7 @@ Player1 32
 Player3 25
 Player4 22
 Player5 21
+Sammy_Snake 20
 Player6 19
 Player7 18
 mario 17
@@ -17,4 +18,3 @@ starter 13
 Nick 12
 MyNameIs... 12
 Napoleon 11
-Player1 9

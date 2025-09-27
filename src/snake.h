@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <array>
 
-#include "menu.h" //TODO: remove the map files from here
+#include "menu.h" //TODO: remove the map files from here (see bottom of file)
 
 class Snake {
  public:
@@ -60,37 +60,7 @@ class Snake {
   int grid_height;
 };
 
-// class Sammy : Snake{
-//   public:
-//       Sammy(int grid_width, int grid_height) : Snake(grid_width, grid_height)
-//       {
-//           // Initialize textures here, assuming you have access to an SDL_Renderer
-//           snake_head_texture = InitTexture(renderer, "../assets/sprites/snake_green_head.bmp";);
-//           snake_dies_texture = InitTexture(renderer, "../assets/sprites/snake_green_xx.bmp"); 
-//       }; 
-
-//       ~Sammy(){
-//           if (snake_head_texture) SDL_DestroyTexture(snake_head_texture);
-//           if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture);
-//       };
-//   };
-
-// class Cindy : Snake{
-//   public:
-//       Cindy(int grid_width, int grid_height) : Snake(grid_width, grid_height)
-//       {
-//           // Initialize textures here, assuming you have access to an SDL_Renderer
-//           snake_head_texture = InitTexture(renderer, "../assets/sprites/snake_yellow_head.bmp";);
-//           snake_dies_texture = InitTexture(renderer, "../assets/sprites/snake_yellow_xx.bmp"); 
-//       }; 
-
-//       ~Cindy(){
-//           if (snake_head_texture) SDL_DestroyTexture(snake_head_texture);
-//           if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture);
-//       };
-//   };
-
-
+// TODO: check using this ??
 static std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = characterFileMap; ;
 
 #endif

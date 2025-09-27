@@ -2,6 +2,5 @@
 build
 CODEOWNERS
 .vscode
-src/queue.h
 src/ai/model.h
 src/ai/model.cpp

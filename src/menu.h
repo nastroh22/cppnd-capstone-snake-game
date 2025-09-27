@@ -9,54 +9,12 @@
 #include <iostream>
 #include "constants.h" //include Screen Dimensions
 #include "scoreio.h"
-#include "character.h"
+#include "utils.h"
 #include <unordered_map>
 
 
-// see: https://www.color-hex.com/color-palette/59812 (good resource on rgb colors)
-// Named Color Options (can of course add whatever you'd like!)
-constexpr SDL_Color WHITE = {255, 255, 255, 255};
-constexpr SDL_Color TAN = {255, 219, 172, 150}; // darker : (241,194,125)
-constexpr SDL_Color FOREST = {39, 62, 6, 200};
-constexpr SDL_Color ARMY = {75, 92, 9, 250};
-constexpr SDL_Color OLIVE = {106, 118, 12, 255};
-constexpr SDL_Color MOSS = {134, 141, 7, 255};
-constexpr SDL_Color SPRING = {157, 174, 17, 250};
-constexpr SDL_Color DEEPBLUE = {1, 31, 75, 255};
-constexpr SDL_Color BLACK = {0, 0, 0, 255};
-constexpr SDL_Color GREY = {192, 197, 206, 255};
-constexpr SDL_Color SLATE = {112, 128, 144, 255};
-constexpr SDL_Color RETRO_BLUE = {125, 249, 255, 250};
-constexpr SDL_Color RETRO_PEACH = {255, 226, 138, 250};
-constexpr SDL_Color BRICK = {191, 0, 0, 255};
-constexpr SDL_Color MINT = {111, 203, 159, 255};
-constexpr SDL_Color LEMON = {255, 244, 79, 255};
-constexpr SDL_Color AVOCADO = {85, 131, 3, 255};
-constexpr SDL_Color SIENNA = {212, 140, 87,255};
-constexpr SDL_Color DARTMOUTH = {0, 121, 68, 255};
-constexpr SDL_Color RUST = {185, 90, 17, 255};
-constexpr SDL_Color DARKGOLD = {152, 114, 11, 255};
-constexpr SDL_Color GOLD = {183, 153, 6, 255};
-constexpr SDL_Color RED = {255, 0, 0, 255};
-constexpr SDL_Color FIRE = {252, 78, 41, 255};
-
-
-// Text Colors
-constexpr SDL_Color DEFAULT_TEXT_COLOR = WHITE;
-constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE;
-constexpr SDL_Color TITLE_COLOR = LEMON;
-
-// Button Backgrounds (TODO Bundle into Menu Type Blocks)
-constexpr SDL_Color PLAY_BUTTON_COLOR = MOSS ; //SPRING; //ARMY
-constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
-constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
-constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
-constexpr SDL_Color BACK_BUTTON_COLOR = RUST;
-constexpr SDL_Color START_BUTTON_COLOR = MOSS;
-constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
-constexpr SDL_Color HOVER_BORDER_COLOR = LEMON; // for hover effect
-constexpr SDL_Color SELECT_BORDER_COLOR = RETRO_BLUE; // for selected effect
-constexpr SDL_Color BACKGROUND_COLOR = BLACK;
+/* "Dynamic Constants"
+------------------------------- */
 
 //Window Positions
 static int border_width = static_cast<int>(.15*kScreenWidth);
@@ -82,90 +40,18 @@ const SDL_Rect NAME_WIN_POSITION = {
     static_cast<int>(kScreenWidth - 2.4*border_width),
     80
 };
-constexpr SDL_Color NAME_WIN_BORDER_COLOR = MINT;
-constexpr SDL_Color NAME_WIN_COLOR = WHITE;
-constexpr SDL_Color NAME_WIN_TEXT_COLOR = BLACK;
 
-// Main Button Positions 
-// TODO: also generate these positions dynamically based on screen size
-const SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};  // x,y,w,h
-constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75}; 
-constexpr SDL_Rect SCORE_BUTTON_RECT = {220, 350, 200, 75};
-constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
-
-
-
-// Charcater Menu Constants:
 // NOTE: button rectangles generated dynamically based on screen size and number of characters
-
-// Define these
-enum CharacterEnum {Sammy, Cindy}; // arbitrary enums, but using consistent naming 
-const std::string CHARACTER_NAMES[]= {"Sammy", "Cindy"};  // display names
-constexpr SDL_Color CHARACTER_COLORS[] = {AVOCADO, GOLD};
-
-
-// Character BMP Files
-const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFileMap = 
-{
-    {CharacterEnum::Sammy, {
-            "../assets/snake_green_head.bmp", 
-            "../assets/snake_green_blob.bmp", 
-            "../assets/snake_green_xx.bmp"
-        }
-    },
-    {CharacterEnum::Cindy, 
-        {
-            "../assets/snake_yellow_head.bmp", 
-            "../assets/snake_yellow_blob.bmp", 
-            "../assets/snake_yellow_xx.bmp"
-        }
-    }
-};
-
-// Menu Format Constants
-constexpr int CHARACTER_TOP_OFFSET = 75; //offset to leave room for title (char menu begins here)
-constexpr SDL_Rect CHARACTER_BACK_BUTTON_RECT = {220, 400, 200, 75};
-constexpr int CHARACTER_BUTTON_PADDING_X = 50;
-constexpr int CHARACTER_BUTTON_PADDING_Y = 50;
-constexpr int NUM_CHARACTER_GRID_COLUMNS = 2; 
-constexpr SDL_Color CHARACTER_BUTTON_BORDER_COLOR = WHITE; // currently does nothing
-static std::unordered_map<std::string, CharacterEnum> characterEnumMap;
-
-
-// Dynamic
 const int NUM_CHARACTERS = static_cast<size_t>(sizeof(CHARACTER_NAMES) / sizeof(CHARACTER_NAMES[0]));
-// const int NUM_CHARACTERS = 2;
 
 
-
-// "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment
-// could also move to apprpriate spot
+// "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment // could also move to apprpriate spot
 static auto init = []() {
     for  (int i = 0; i < NUM_CHARACTERS; ++i){
         characterEnumMap[CHARACTER_NAMES[i]] = static_cast<CharacterEnum>(i);
     }; 
     return 0;
 }();
-
-
-
-
-
-
-
-//TODO: String Utils ?
-// #include <algorithm>
-// #include <string>
-// #include <cctype>
-
-// std::string to_lower(const std::string& input) {
-//     std::string result = input;
-//     std::transform(result.begin(), result.end(), result.begin(),
-//                    [](unsigned char c) { return std::tolower(c); });
-//     return result;
-// }
-
-
 
 const SDL_Rect SCORE_TABLE_RECT = {
     WIN_POSITION.x + 10,
@@ -199,24 +85,25 @@ const SDL_Rect SCORE_BACK_BUTTON_RECT = {
     80
 };
 
-// Colors are customizable
-constexpr SDL_Color SCORE_CELL_COLOR = BLACK;
-constexpr SDL_Color SCORE_TEXT_COLOR = LEMON;
-constexpr SDL_Color SCORE_CELL_BORDER_COLOR = RETRO_BLUE;
-constexpr SDL_Color SCORE_WINDOW_COLOR = SLATE;
-constexpr SDL_Color SCORE_WINDOW_BORDER_COLOR = LEMON;
-
-
-// Start Menu Constants
-constexpr SDL_Rect START_BUTTON_RECT = {220, 250, 200, 75};
-constexpr SDL_Rect BACK_BUTTON_RECT = {220, 350, 200, 75};
-const std::string DEFAULT_PLAYER_NAME = "Player1";
 
 // Character Menu Positions
 // constexpr SDL_Rect CHARACTER_BUTTON_RECT = {220, 350, 200, 75};
 
 // TODO : Font Options
 // maybe an even cooler feature... add themes (future)
+
+//TODO: String Utils ?
+// #include <algorithm>
+// #include <string>
+// #include <cctype>
+
+// std::string to_lower(const std::string& input) {
+//     std::string result = input;
+//     std::transform(result.begin(), result.end(), result.begin(),
+//                    [](unsigned char c) { return std::tolower(c); });
+//     return result;
+// }
+
 
 
 // State Enum (convenience)
@@ -243,10 +130,11 @@ class Text {
     SDL_Color _color = DEFAULT_TEXT_COLOR; // default color
     public:
         Text(SDL_Renderer *renderer,const std::string &font_path, int font_size, const std::string &message_text, SDL_Color color);
-        SDL_Texture *loadFont(SDL_Renderer *renderer,const std::string &font_path, int font_size, const std::string &message_text, SDL_Color& color);
+        void loadFont(SDL_Renderer *renderer,const std::string &font_path, int font_size);
+        SDL_Texture *makeTexture(SDL_Renderer *renderer, const std::string &message_text, SDL_Color& color);
         void display(SDL_Renderer *renderer, int x, int y) const;
         void displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message);
-        ~Text(){ SDL_DestroyTexture(_text_texture); }; //free textures
+        ~Text(){ SDL_DestroyTexture(_text_texture); TTF_CloseFont(_font); }; //free textures
         int getWidth() const { return _text_rect.w;}
         int getHeight() const { return _text_rect.h;}
     
@@ -271,6 +159,7 @@ class Text {
     private:
         SDL_Texture *_text_texture;
         mutable SDL_Rect _text_rect = {0,0,20,20}; // for positioning text, mutable so that display can be const
+        TTF_Font *_font = nullptr;
 };
 
 // **************** Window Compoenents ********************************************************
@@ -358,7 +247,6 @@ class TableWindow  {
         }
         int getRows() const { return _rows; }
         void toggleOffset(PageToggle direction) {
-            std::cout << direction << "current offset: " << _offset << std::endl;
             if (direction == UP && _offset > 0) {
                 _offset -= _rows;
                 UpdateCells(_offset);
@@ -491,7 +379,7 @@ class ImageButton : public Button
         : Button(renderer, label, color, rect, text), _asset_path(std::move(image_asset_path))
     {
         // load image texture
-        _image_texture = Characters::InitTexture(renderer, _asset_path); // figure out a better way here
+        _image_texture = RenderUtils::InitTexture(renderer, _asset_path); // figure out a better way here
     }
     ~ImageButton() override {
         if (_image_texture) {
@@ -611,7 +499,8 @@ public:
     // virtual void handleEvent(const SDL_Event& e);
     virtual MenuState queryButtons(const SDL_Event& e);
     virtual MenuState getNameInput(const SDL_Event& e) {return MenuState::NONE;}; // just make generic getTextInput
-    virtual std::string getPlayerName() const {return "";};
+    virtual std::string getPlayerName() {return "";};
+    virtual void toggleCursor() {};
     virtual std::string getCharacterSelection() const {return "";};
     virtual void setCharacterSelection(const std::string& character){}; // just need this in parent so CharacterMenu can override
 
@@ -673,14 +562,17 @@ class PlayerEntryMenu : public Menu {
     PlayerEntryMenu(SDL_Renderer* renderer);
     ~PlayerEntryMenu() = default;
     // DISABLE_COPY_ENABLE_MOVE(PlayerEntryMenu);
-    std::string getPlayerName() const override ;
+    std::string getPlayerName() override ;
     MenuState getNameInput(const SDL_Event& e) override;
+    void toggleCursor() override;
     void Render() override;
     // MenuState queryButtons(const SDL_Event& e) override { return getNameInput(e);};
 
     private:
     std::string _playerName = DEFAULT_PLAYER_NAME; // default name
     std::unique_ptr<InputWindow> _textEntry; // automate free textures
+    Uint32 _lastToggleTime = 0; // move to be inherent to a dialog box? (TODO)
+    bool cursor_visible = true;
     // Window _text_entry;
 };
 
@@ -704,7 +596,6 @@ class ScoreMenu : public Menu {
 
 // TODO
 class CharacterMenu : public Menu {
-
 
     std::string _selectedCharacter = CHARACTER_NAMES[0]; // default
     int _num_characters = 0;
@@ -816,9 +707,10 @@ class MenuManager {
         
         if (_currentMenu == nameInput.get()){
             nameInput->getNameInput(e); 
-            if (nameInput->getPlayerName().size() >= 2) {
-                _playerName = nameInput->getPlayerName();
-            }
+            // nameInput->toggleCursor(); // to handle cursor blink
+            // if (nameInput->getPlayerName().size() >= 2) {
+            //     _playerName = nameInput->getPlayerName();
+            // }
         }
     
         if (_currentMenu == characterMenu.get()) {

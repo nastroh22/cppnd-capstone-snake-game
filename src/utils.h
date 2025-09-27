@@ -6,7 +6,7 @@
 
 
 // Refactor this to "render_utils" instead (or something) -- probably include text here as well
-namespace Characters{
+namespace RenderUtils{
 
     static SDL_Texture* InitTexture(SDL_Renderer* const renderer, const std::string& path) {
         SDL_Surface* surface = SDL_LoadBMP(path.c_str());
@@ -31,6 +31,26 @@ namespace Characters{
         return texture;
     };
 
+    static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+
+        // Top
+        SDL_Rect top = {rect.x, rect.y, rect.w, thickness};
+        SDL_RenderFillRect(renderer, &top);
+
+        // Bottom
+        SDL_Rect bottom = {rect.x, rect.y + rect.h - thickness, rect.w, thickness};
+        SDL_RenderFillRect(renderer, &bottom);
+
+        // Left
+        SDL_Rect left = {rect.x, rect.y, thickness, rect.h};
+        SDL_RenderFillRect(renderer, &left);
+
+        // Right
+        SDL_Rect right = {rect.x + rect.w - thickness, rect.y, thickness, rect.h};
+        SDL_RenderFillRect(renderer, &right);
+    }
+
     // Refactor this to "render_utils" instead (or something) -- probably include text here as well
     class Hawk {
         public:
@@ -45,9 +65,35 @@ namespace Characters{
         private:
             SDL_Texture *hawk_texture = nullptr;
     };
-
 }
 
+namespace StringUtils{
+    static void replace(std::string& str, const std::string& from, const std::string& to) {
+        if(from.empty())
+            return;
+        size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+        }
+    }
+
+    static std::string strip(const std::string& str) {
+        size_t start = 0;
+        size_t end = str.length();
+
+        // Find first non-whitespace character
+        while (start < end && std::isspace(static_cast<unsigned char>(str[start]))) {
+            ++start;
+        }
+
+        // Find last non-whitespace character
+        while (end > start && std::isspace(static_cast<unsigned char>(str[end - 1]))) {
+            --end;
+        }
+        return str.substr(start, end - start);
+    }
+}
 
 #endif 
 

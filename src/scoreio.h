@@ -22,7 +22,7 @@ namespace ScoreIO {
     extern const fs::path PATH; 
     std::vector<std::vector<std::string>> load_scores();
     std::vector<Entry> load_entries();
-    void save_score(const Entry& new_entry);
+    void save_score(Entry& new_entry);
     void print_scores();
 }
 #endif

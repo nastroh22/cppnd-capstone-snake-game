@@ -8,18 +8,18 @@
 #include <thread>
 #include <future>
 #include <chrono>
-#include "ai/run.h"
+#include "enemy/planner.h"
 #include "queue.h"
 #include "SDL.h"
 #include <atomic>
 #include "snake.h"
-#include "character.h"
+#include "utils.h"
 
 enum class GameState { MENU, PLAYING, EXIT };
 
 int main() {
 
-  // state
+  // stateF
   GameState state = GameState::MENU;
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
   MenuManager menu(renderer.get());
@@ -33,7 +33,7 @@ int main() {
   std::shared_ptr<MessageQueue<SDL_Point>> aiq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
   std::shared_ptr<MessageQueue<SDL_Point>> playerq = std::make_shared<MessageQueue<SDL_Point>>(shutdown_flag);
   Planner planner(aiq.get(), playerq.get(), shutdown_flag);
-  
+
 
   // main loop
   while (state != GameState::EXIT) {
@@ -50,7 +50,7 @@ int main() {
              std::cout << "Should Exit : " << std::endl;
             state = GameState::EXIT;
         }
-        //TODO: let Menu go out of scope here ?
+        //TODO: let Menu go out of scope here ??
         break;
       }
 
@@ -58,13 +58,14 @@ int main() {
 
         // get character textures:
         CharacterEnum character = characterEnumMap.at(characterName);
-        Characters::Hawk hawk(renderer.get());
+        RenderUtils::Hawk hawk(renderer.get());
         
         shutdown_flag->store(false);
         planner.start(); // maybe move the thread launching into this function
         
         std::cout << "Launching planner thread " << std::endl;
-        std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
+        // std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
+        std::future<bool> f = std::async(std::launch::async, &Planner::run, &planner);
         std::this_thread::sleep_for(std::chrono::seconds(1)); 
         
         {
@@ -84,7 +85,9 @@ int main() {
           aiq->clear(); playerq->clear();
           std::this_thread::sleep_for(std::chrono::milliseconds(500));
           planner.stop(); // std::cout << "Enemy thread is off: " << test << std::endl;
-          bool test = f.get(); // TODO: one of these calls I believe is rendundant 
+          planner.debugRunFlag();
+          std::cout << "flag: " << std::boolalpha << shutdown_flag->load() << std::endl;
+          bool test = f.get(); // TODO: this could be causing the bug ?
           ScoreIO::Entry new_entry{Player, game.GetScore()};
           ScoreIO::save_score(new_entry);
         }

@@ -55,28 +55,20 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     frame_start = SDL_GetTicks();
     // std::cout << "Inside Game Loop" << std::endl;
 
-    // AI Step:
-    // std::cout << "Tries to subscribe " << std::endl;
-    std::optional<SDL_Point> msg = subscriberq->send(); // this actually GETS move from AI
+    // Actually GETS move from AI
+    std::optional<SDL_Point> msg = subscriberq->send(); 
     if (msg.has_value()) {
         ai_location = msg.value();
     }
-    // std::cout << "Game received AI Move: " << ai_location.x << ", " << ai_location.y << std::endl;
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update(ai_location);
     renderer.Render(snake, food, ai_location, ai_texture);
-    if (snake.alive == false) {
-        // Shutdown the ai thread  with shutdown flag
-        shutdown_flag->store(true);
-        return;
-    }
 
     frame_end = SDL_GetTicks();
 
-    // Keep track of how long each loop through the input/update/render cycle
-    // takes.
+    // Keep track of how long each loop through the input/update/render cycle takes.
     frame_count++;
     frame_duration = frame_end - frame_start;
 
@@ -87,19 +79,36 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       title_timestamp = frame_end;
     }
 
-    // this SENDS player loc to AI, giving it time to calc next move
+    // SENDS player loc to AI, giving it time to calc next move
     // std::cout << "Where does it think the snake is ? " << static_cast<int>(snake.head_x) << ", " << static_cast<int>(snake.head_y) << std::endl;
     int send_x = static_cast<int>(snake.head_x);
     int send_y = static_cast<int>(snake.head_x);
     publisherq->receive(std::move(
       SDL_Point{static_cast<int>(snake.head_x), 
                 static_cast<int>(snake.head_y)}));
+    
     // If the time for this frame is too small (i.e. frame_duration is
     // smaller than the target ms_per_frame), delay the loop to
     // achieve the correct frame rate.
     if (frame_duration < target_frame_duration) {
       SDL_Delay(target_frame_duration - frame_duration);
     }
+
+    //NOTE: I think the fix here is just make sure send and receive run every loop before breaking
+    // to allow condition vars to send
+    // However, another (cleaner?) solution is to write a shutdown function in the queu that notifies all conditions
+    // after the shutdown flag is set
+    if (snake.alive == false) {
+      // Shutdown the ai thread  with shutdown flag
+      std::cout << "We set the shutdown flag" << std::endl;
+      shutdown_flag->store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(5)); // ensure time for clean shutdown
+      subscriberq->shutdown();
+      publisherq->shutdown();
+      return;
+    }
+  
+
   }
 }
 
