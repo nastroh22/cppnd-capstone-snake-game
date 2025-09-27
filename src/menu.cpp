@@ -8,113 +8,20 @@
 #include "SDL_ttf.h"
 #include "utils.h" //move to utils
 
-// ***************************** Text Defs  *********************************** //
-Text::Text(
-    SDL_Renderer *renderer,
-    const std::string &font_path,
-    int font_size,
-    const std::string &message_text,
-    SDL_Color color) : _color(color)
-{
-    loadFont(renderer, font_path, font_size);
-    _text_texture = makeTexture(renderer, message_text, _color);
-    if (!_text_texture) {
-        std::cerr << "Failed to load text texture." << std::endl;
-    }
-    SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
-    std::cout << "Loaded Text: " << message_text << std::endl;
-}
-void Text::display(SDL_Renderer *renderer, int x, int y) const
-{
-    _text_rect.x = x;
-    _text_rect.y = y;
-    SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
-}
 
-void Text::displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message) {
-    _text_rect.x = x;
-    _text_rect.y = y;
-    if (_text_texture) {
-        // TTF_CloseFont(_font);
-        SDL_DestroyTexture(_text_texture);
-        _text_texture = nullptr;
-    }
-    _text_texture = makeTexture(renderer, message, _color); // TODO - store color and font_size
-    SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
-    SDL_RenderCopy(renderer, _text_texture, nullptr, &_text_rect);
-}
-
-void Text::loadFont(SDL_Renderer *renderer, const std::string &font_path, int font_size)
-{
-    _font = TTF_OpenFont(font_path.c_str(), font_size);
-    if (!_font) {
-        std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-    }
-}
-
-SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &message_text, SDL_Color& color)
-{
-    auto text_surface = TTF_RenderText_Solid(_font, message_text.c_str(), color);
-
-    if (!text_surface) {
-        std::cerr << "Failed to create text surface: " << TTF_GetError() << std::endl;
-        TTF_CloseFont(_font);
-        _font = nullptr; // reassign to avoid dangling pointer
-        return nullptr;
-    }
-    
-    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    if (!text_texture) {
-        std::cerr << "Failed to create text texture: " << SDL_GetError() << std::endl;
-    }
-
-    SDL_FreeSurface(text_surface);
-    return text_texture;
-}
-
-// ************************************ Window Defs  ************************************************** //
-void Window::Render(SDL_Renderer* renderer){
-    // drawing
-    SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
-    SDL_RenderFillRect(renderer, &_windowRect);
-    RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
-
-    // render title
-    _title.display(renderer, 
-        _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
-        _windowRect.y + 10
-    );
-}
-
-// NOTE: (TODO) can actually deprecate this custom render and just store this loagic at class level with _text_x, _text_y
-void Cell::Render(SDL_Renderer* renderer){
-    // draw color
-    SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
-    SDL_RenderFillRect(renderer, &_windowRect);
-
-    // draw border
-    RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
-    if (_shouldUpdate) {
-        _title.displayDynamic(renderer, _text_x, _text_y, _cellText);
-        _shouldUpdate = false;
-    } else {
-        _title.display(renderer, _text_x, _text_y);
-    }
-}
-
-void InputWindow::Render(SDL_Renderer* renderer){
-    SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
-    SDL_RenderFillRect(renderer, &_windowRect);
-    RenderUtils::drawBorder(renderer, _windowRect, 1, _borderColor);
-    // (TODO?) Better Approach is interior window "DynamicText" object that can be updated or rather "InputWindow"
-    if ((_playerInput) && !_playerInput->empty()) {
-        _inputText.displayDynamic(renderer, 
-            _windowRect.x + 20, // some padding from left
-            _windowRect.y + 20, // below title
-            *_playerInput // TODO: make this a refnerence instead ?
-        );
-    }
-}
+// void InputWindow::Render(SDL_Renderer* renderer){
+//     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
+//     SDL_RenderFillRect(renderer, &_windowRect);
+//     RenderUtils::drawBorder(renderer, _windowRect, 1, _borderColor);
+//     // (TODO?) Better Approach is interior window "DynamicText" object that can be updated or rather "InputWindow"
+//     if ((_playerInput) && !_playerInput->empty()) {
+//         _inputText.displayDynamic(renderer, 
+//             _windowRect.x + 20, // some padding from left
+//             _windowRect.y + 20, // below title
+//             *_playerInput // TODO: make this a refnerence instead ?
+//         );
+//     }
+// }
 
 //  ***************************************** Button Defs  **************************************************** //
 void Button::toggleHover(const SDL_Point& mousePoint) {
@@ -223,70 +130,6 @@ MenuState CharacterSelectButton::onClick(Menu* container) const {
 }
 
 
-
-// **************************************** Table Defs ******************************************************* //
-void TableWindow::buildGrid(SDL_Renderer *renderer) {
-    // TODO: this is not yet general, builds in assumptions about scoreTable (i.e. data type, cols=2)
-    // possibly use overloading
-
-    int const cellWidth = _tableRect.w / _cols;
-    int const cellHeight = _tableRect.h / _rows; // TODO: make scrollable
-    gridData = ScoreIO::load_scores(); 
-
-
-    // gridData.clear(); // should only be built once, but in case
-    // gridData.resize(_rows, std::vector<std::string>(_cols, "")); // initialize with empty strings
-
-    gridSpec.clear(); // should only be built once, but in case
-    gridSpec.resize(_rows);
-    std::cout << "Inside buildGrid, gridSpec size: " << gridSpec.size() << gridData.size() << std::endl; //debug
-    int width_adjust = 0;
-    int prev_width = 0;
-
-    for (int i = 0; i < _rows; ++i) {
-        
-        // std::cout << "tries to get griddata" << std::endl; //debug
-        std::vector<std::string> entry = gridData[i];
-        gridSpec[i].reserve(_cols); // avoid multiple allocations
-
-        for (int j = 0; j < _cols; ++j) {
-            
-            width_adjust = (j % 2 == 0) ? cellWidth+90 : cellWidth-90;
-            std::cout << "Wudth adjusted : " << width_adjust << std::endl; //debug
-
-            SDL_Rect cellRect = { //tight layout
-                _tableRect.x + j * prev_width,
-                _tableRect.y + i * cellHeight,
-                width_adjust,
-                cellHeight
-            };
-            gridSpec[i].emplace_back(
-                renderer, 
-                gridData[i][j], // initial text
-                _cellColor,
-                _cellBorderColor, 
-                cellRect, 
-                _textFontSize, 
-                _textColor
-            );
-            if (j % 2 == 0) {gridSpec[i][j].leftJustify();} // name column
-            prev_width = width_adjust;
-            
-        }
-    }
-    for (const auto& item : gridData) {
-        std::cout << "Score Data: " << item[0] << ", " << item[1] << std::endl; //debug
-    }
-}
-
-void TableWindow::UpdateCells(int offset){
-    for (int i = 0; i < _rows; ++i) {
-        for (int c = 0; c < _cols; ++c) {
-            int r = i + offset;
-            gridSpec[i][c].UpdateText(gridData[r][c]);
-        }
-    }
-}
 
 //  ***************************** Menu Defs *************************************************** //
 void Menu::Render() {
@@ -413,13 +256,29 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
     _buttons.emplace_back(std::make_unique<BackButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
     _buttons.emplace_back(std::make_unique<StartButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
     _window = std::make_unique<Window>(renderer, "Enter Player Name: ", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
-    _textEntry = std::make_unique<InputWindow>(renderer, NAME_WIN_COLOR, NAME_WIN_BORDER_COLOR, NAME_WIN_POSITION, &_playerName);
+    // _textEntry = std::make_unique<InputWindow>(renderer, NAME_WIN_COLOR, NAME_WIN_BORDER_COLOR, NAME_WIN_POSITION, &_playerName);
+    
+    //TODO: rename Cell to DynamicWindow or something (or Cell to InputWindow)
+    _textEntry = std::make_unique<Cell>(
+        renderer,
+        _playerName, //Initial Text
+        NAME_WIN_COLOR,
+        NAME_WIN_BORDER_COLOR,
+        NAME_WIN_POSITION, 
+        28,
+        NAME_WIN_TEXT_COLOR
+        // TODO: make dynamic based on window size
+    );
     _disableSelectEffect = true; 
 }
 void PlayerEntryMenu::Render() {
     Menu::Render(); // render base window and buttons
     toggleCursor(); // handle cursor blinking
     //NOTE: probably want to (TODO) make a separate display string to avoid erroneous |'s added to name
+
+    // std::string temp = _playerName + _cursor;
+    _textEntry->UpdateText(_playerName + _cursor); // update text with current name (and cursor if visible)
+    _textEntry->leftJustify(); // align text to left
     _textEntry->Render(_renderer); // render input window on top
 }
 
@@ -434,13 +293,16 @@ MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
         // Handle quit
     }
     else if (event.type == SDL_TEXTINPUT) {
-        // Append event.text.text to your string buffer
+        // Append event.text.text to string buffer
         _playerName += event.text.text;
         std::cout << "Keystroke: " << _playerName << std::endl;
     }
     else if (event.type == SDL_KEYDOWN) {
         if (event.key.keysym.sym == SDLK_BACKSPACE && _playerName.size() > 0) {
             _playerName.pop_back();  // Handle backspace
+            if (_playerName.length() == 0) {
+                _playerName = " "; // Add cursor if name is empty
+            }
             std::cout << "After backspace: " << _playerName << std::endl;
         }
     }
@@ -450,24 +312,9 @@ MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
 void PlayerEntryMenu::toggleCursor()
 {
     Uint32 current_time = SDL_GetTicks();
-    std::cout << "Current Time: " << current_time << " Last Toggle Time: " << _lastToggleTime << std::endl; //debug
     if (current_time -  _lastToggleTime > CURSOR_BLINK_INTERVAL_MS) {
-        std::cout << "Toggle Cursor Blink" << std::endl; //debug
-         _lastToggleTime = current_time;
-        cursor_visible = !cursor_visible;
-        if (cursor_visible) {
-            _playerName += '|'; // Add cursor
-            std::cout << "Cursor On: " << _playerName << std::endl; //debug
-        } else {
-            if (!_playerName.empty() && _playerName.back() == '|') {
-                _playerName.pop_back(); // Remove cursor
-            }
-        }
-        // Update the displayed text
-        if (!cursor_visible && !_playerName.empty() && _playerName.back() == '|') {
-            _playerName.pop_back(); // Ensure cursor is removed when not visible
-            std::cout << "Cursor Off: " << _playerName << std::endl; //debug
-        }
+        _cursor = (_cursor == '|') ? ' ' : '|';
+        _lastToggleTime = current_time;
     }
 }
 

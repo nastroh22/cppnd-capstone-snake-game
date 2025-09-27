@@ -2,6 +2,10 @@
 
 #include <cstddef>
 #include <unordered_map>
+#include <string>
+#include <array>
+#include "SDL.h"
+#include "SDL_ttf.h"
 
 // constexpr std::size_t kFramesPerSecond{60};
 constexpr std::size_t kFramesPerSecond{60}; // For Debugging

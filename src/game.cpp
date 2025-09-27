@@ -7,14 +7,6 @@
 #include <constants.h>
 
 
-// Note: possible use case of a template DEPRECATE
-// template <typename... FoodTypes>
-// void AddFoods(std::vector<std::unique_ptr<Food>>& foods) {
-//     (foods.emplace_back(std::make_unique<FoodTypes>()), ...);
-// }
-
-
-
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
@@ -23,14 +15,8 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       random_h(0, static_cast<int>(grid_height - 1)),
       item_choice(Assets::itemProbs.begin(), Assets::itemProbs.end())
   {
-
-  // Pass Renderer here to init textures at construction
-  // I am also tempted to store queues as class variables
-
-  // AddFoods<Banana, Cherries, Dot, Star, Bomb>(foods); // shouldn't need this anymore
-  // PlaceItem(); // can probably just do this in the update
-
-}
+  // TODO I am also tempted to store queues as class variables
+  }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
                std::size_t target_frame_duration,
@@ -44,12 +30,9 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   Uint32 frame_duration;
   int frame_count = 0;
   bool running = true;
-
-  // Game Viz Inits Unique Textures (could move to main perhaps)
-  // for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());} // Move to constructor
   SDL_Point ai_location = SDL_Point{20,20}; // initialize to same as constructor
+  PlaceItem(); // initial random location
 
-  //TODO probably move the hawk texture into this as well (??)
 
   while (running) {
     frame_start = SDL_GetTicks();
@@ -65,9 +48,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     Update(ai_location);
     renderer.Render(snake, itemStruct, ai_location);
 
-    frame_end = SDL_GetTicks();
-
     // Keep track of how long each loop through the input/update/render cycle takes.
+    frame_end = SDL_GetTicks();
     frame_count++;
     frame_duration = frame_end - frame_start;
 
@@ -92,10 +74,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       SDL_Delay(target_frame_duration - frame_duration);
     }
 
-    //NOTE: I think the fix here is just make sure send and receive run every loop before breaking
-    // to allow condition vars to send
-    // However, another (cleaner?) solution is to write a shutdown function in the queu that notifies all conditions
-    // after the shutdown flag is set
     if (snake.alive == false) {
       // Shutdown the ai thread  with shutdown flag, stop queues if waiting
       shutdown_flag->store(true);
