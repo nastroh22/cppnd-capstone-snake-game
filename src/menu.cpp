@@ -212,15 +212,16 @@ void ImageButton::Render(SDL_Renderer* renderer){
     // draw border
     drawBorder(renderer, _buttonRect, _borderThickness, _borderColor); // thickness of 2
 
+    int title_offset = 15;
     setY(_buttonRect.y + 10); // text y position (redunant)
-    _text.display(renderer, _textX, _buttonRect.y + 10); // render text
+    _text.display(renderer, _textX, _buttonRect.y + title_offset); // render text
 
     // render image centered
     if (_image_texture) {
         int img_w, img_h;
         SDL_QueryTexture(_image_texture, nullptr, nullptr, &img_w, &img_h);
         int img_x = _buttonRect.x + (_buttonRect.w - img_w) / 2;
-        int img_y = _buttonRect.y + (_buttonRect.h - img_h) / 2;
+        int img_y = _buttonRect.y + (_buttonRect.h - img_h) / 2 + title_offset; // adjust for title
         SDL_Rect destRect = {img_x, img_y, img_w, img_h};
         SDL_RenderCopy(renderer, _image_texture, nullptr, &destRect);
     } else {
@@ -420,7 +421,7 @@ void CharacterMenu::generateGridDimensions()
         int col = i % NUM_CHARACTER_GRID_COLUMNS;
         SDL_Rect rect = {
             WIN_POSITION.x + CHARACTER_BUTTON_PADDING_X + col * (cell_width + CHARACTER_BUTTON_PADDING_X),
-            WIN_POSITION.y + CHARACTER_BUTTON_PADDING_Y + row * (cell_height + CHARACTER_BUTTON_PADDING_Y),
+            WIN_POSITION.y + CHARACTER_BUTTON_PADDING_Y + row * (cell_height + CHARACTER_BUTTON_PADDING_Y) + CHARACTER_TOP_OFFSET,
             cell_width,
             cell_height
         };
@@ -439,7 +440,7 @@ CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){
     // "(CHARACTER_GRID_COLUMNS) Use at least many columns as characters for better formatting results")
 
     _buttons.reserve(NUM_CHARACTERS + 1);
-    _buttons.emplace_back(std::make_unique<BackButton>(_renderer)); // TODO (Maybe): Make an "Enter" or "Ok" button
+    _buttons.emplace_back(std::make_unique<BackButton>(_renderer, BACK_BUTTON_COLOR, CHARACTER_BACK_BUTTON_RECT)); // TODO (Maybe): Make an "Enter" or "Ok" button
     for ( int i = 0; i < NUM_CHARACTERS; ++i) {
         _buttons.emplace_back(
             std::make_unique<CharacterSelectButton>(_renderer, i, _characterRects[i])
@@ -449,7 +450,6 @@ CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){
     _window = std::make_unique<Window>(renderer, "Select Your Character:", WINDOW_COLOR, WINBORDER_COLOR, WIN_POSITION);
 
 }
-
 
 
 

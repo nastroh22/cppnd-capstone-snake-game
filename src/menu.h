@@ -47,7 +47,7 @@ constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE;
 constexpr SDL_Color TITLE_COLOR = LEMON;
 
 // Button Backgrounds (TODO Bundle into Menu Type Blocks)
-constexpr SDL_Color PLAY_BUTTON_COLOR = ARMY;
+constexpr SDL_Color PLAY_BUTTON_COLOR = MOSS ; //SPRING; //ARMY
 constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
 constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
 constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
@@ -101,7 +101,7 @@ constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
 // Define these
 enum CharacterEnum {Sammy, Cindy}; // arbitrary enums, but using consistent naming 
 const std::string CHARACTER_NAMES[]= {"Sammy", "Cindy"};  // display names
-constexpr SDL_Color CHARACTER_COLORS[] = {FOREST, DARKGOLD};
+constexpr SDL_Color CHARACTER_COLORS[] = {AVOCADO, GOLD};
 
 
 // Character BMP Files
@@ -123,6 +123,8 @@ const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFil
 };
 
 // Menu Format Constants
+constexpr int CHARACTER_TOP_OFFSET = 75; //offset to leave room for title (char menu begins here)
+constexpr SDL_Rect CHARACTER_BACK_BUTTON_RECT = {220, 400, 200, 75};
 constexpr int CHARACTER_BUTTON_PADDING_X = 50;
 constexpr int CHARACTER_BUTTON_PADDING_Y = 50;
 constexpr int NUM_CHARACTER_GRID_COLUMNS = 2; 
@@ -136,7 +138,8 @@ const int NUM_CHARACTERS = static_cast<size_t>(sizeof(CHARACTER_NAMES) / sizeof(
 
 
 
-// they call this "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment
+// "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment
+// could also move to apprpriate spot
 static auto init = []() {
     for  (int i = 0; i < NUM_CHARACTERS; ++i){
         characterEnumMap[CHARACTER_NAMES[i]] = static_cast<CharacterEnum>(i);
@@ -538,8 +541,8 @@ public:
 
 class BackButton : public Button {
 public:
-    BackButton(SDL_Renderer* renderer)
-        : Button(renderer, MenuState::BACK, BACK_BUTTON_COLOR, BACK_BUTTON_RECT, "Back") {}
+    BackButton(SDL_Renderer* renderer, SDL_Color color = BACK_BUTTON_COLOR, SDL_Rect rect = BACK_BUTTON_RECT)
+        : Button(renderer, MenuState::BACK, color, rect, "Back") {}
     // DISABLE_COPY_ENABLE_MOVE(BackButton);
     ~BackButton() = default;
 };
