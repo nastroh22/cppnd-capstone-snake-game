@@ -105,7 +105,6 @@ const SDL_Rect SCORE_BACK_BUTTON_RECT = {
 // }
 
 
-
 // State Enum (convenience)
 enum class MenuState {
     MAIN_MENU,
@@ -134,7 +133,11 @@ class Text {
         SDL_Texture *makeTexture(SDL_Renderer *renderer, const std::string &message_text, SDL_Color& color);
         void display(SDL_Renderer *renderer, int x, int y) const;
         void displayDynamic(SDL_Renderer *renderer, int x, int y, const std::string &message);
-        ~Text(){ SDL_DestroyTexture(_text_texture); TTF_CloseFont(_font); }; //free textures
+        ~Text(){ 
+            std::cout << "Destroying Text Object" << std::endl;
+            SDL_DestroyTexture(_text_texture);
+            TTF_CloseFont(_font); //NOTE: One of the fonts becomes nullptr (I think from PlayerEntryMenu)
+        }; //free textures
         int getWidth() const { return _text_rect.w;}
         int getHeight() const { return _text_rect.h;}
     
@@ -552,7 +555,9 @@ protected:
 class MainMenu : public Menu {
     public:
     MainMenu(SDL_Renderer* renderer);
-    ~MainMenu() = default;
+    ~MainMenu(){
+         std::cout << "Main Menu Destructor Called" << std::endl;
+    };
     // DISABLE_COPY_ENABLE_MOVE(MainMenu);
 };
 
@@ -560,7 +565,9 @@ class MainMenu : public Menu {
 class PlayerEntryMenu : public Menu {
     public:
     PlayerEntryMenu(SDL_Renderer* renderer);
-    ~PlayerEntryMenu() = default;
+    ~PlayerEntryMenu(){
+        std::cout << "Player Entry Menu Destructor Called" << std::endl;
+    };
     // DISABLE_COPY_ENABLE_MOVE(PlayerEntryMenu);
     std::string getPlayerName() override ;
     MenuState getNameInput(const SDL_Event& e) override;
@@ -580,7 +587,9 @@ class PlayerEntryMenu : public Menu {
 class ScoreMenu : public Menu {
     public:
     ScoreMenu(SDL_Renderer* renderer);
-    ~ScoreMenu() = default; // unique_pointer will auto free
+    ~ScoreMenu() {
+        std::cout << "Score Menu Destructor Called" << std::endl;
+    }; // unique_pointer will auto free
     DISABLE_COPY_ENABLE_MOVE(ScoreMenu);
     void Render() override;
     int pageSize() const { return _scoreTable->getRows(); } // could make dynamic
@@ -606,7 +615,9 @@ class CharacterMenu : public Menu {
 
     public:
     CharacterMenu(SDL_Renderer* renderer);
-    ~CharacterMenu() = default; // responsible for destroying image textures
+    ~CharacterMenu(){
+        std::cout << "Character Menu Destructor Called" << std::endl;
+    }; // responsible for destroying image textures
     // DISABLE_COPY_ENABLE_MOVE(CharacterMenu);
 
 
@@ -654,7 +665,11 @@ class MenuManager {
         std::cout << "Score Pointer : " << scoreMenu.get() << std::endl; //debug
 
     };
-    ~MenuManager() = default; //TODO any unique logic needed here?
+    ~MenuManager() 
+    {
+        std::cout << "MenuManager Destructor Called" << std::endl;
+    }; 
+    //TODO any unique logic needed here?
     std::string getPlayerName() const { return _playerName; }
     std::string getCharacterSelection() const { return _selectedCharacter; }
 

@@ -14,22 +14,35 @@ namespace RenderUtils{
             std::cerr << "Failed to load BMP file: " << path  << " " << SDL_GetError() << std::endl;
             return nullptr;
         }
-
         SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
         if (!texture) {
             std::cerr << "Failed to create texture: " <<  path  << " " << SDL_GetError() << std::endl;
             // Handle error or set to nullptr
         }
         else {
-            std::cout << "Loaded Character Texture from " << path << std::endl;
+            std::cout << "Loaded Texture from " << path << std::endl;
         }
         SDL_FreeSurface(surface);
-        std::cout << "Texture pointer here : " << texture << std::endl;
-        //   int w = 0, h = 0;
-        //   SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
-        //   std::cout << "Raw loaded texture is size: " << w << " x " << h << "\n";
         return texture;
     };
+
+
+    // Try this approach of reading in textures directly from a map of key/filepath pairs
+   inline std::unordered_map<std::string, SDL_Texture*>
+    loadTexturesFromMap(SDL_Renderer* renderer, const std::unordered_map<std::string, std::string>& files) {
+        std::unordered_map<std::string, SDL_Texture*> textures;
+
+        for (const auto& [key, path] : files) {
+            SDL_Texture* tex = InitTexture(renderer, path);
+            if (tex) {
+                textures[key] = tex;
+            } else {
+                std::cerr << "Texture load failed for '" << key << "' from path: " << path << "\n";
+            }
+        }
+        return textures;
+    }
+
 
     static void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);

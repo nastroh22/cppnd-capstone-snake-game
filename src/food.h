@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include "SDL.h"
+#include "utils.h"
 
 
 //TODO: change pattern so the name is the type (not really necessary to have its own
@@ -22,28 +23,21 @@ public:
     Food& operator=(Food&&) = delete;     // delete move assign
 
     // setters
-    virtual void init_texture(SDL_Renderer* renderer);
-    void set_position(int x, int y) { position.x = x; position.y = y; }
+    virtual void init_texture(SDL_Renderer* renderer) {
+        sdl_texture=RenderUtils::InitTexture(renderer, _asset_file);
+    }
+    void set_position(int x, int y) { position.x = x; position.y = y; std::cout<< "What is the issue? " << std::endl; }
     
-    //getter
+    //getters
     SDL_Point get_position() const { return position; }
     SDL_Texture *get_texture() const { return sdl_texture; }
     int get_x() const { return position.x; }
     int get_y() const { return position.y; }
+
+    // info / debug
     void print_name() const { std::cout << "Food name: " << _name << std::endl; }
     void print_position() const { std::cout << "Food position: (" << position.x << ", " << position.y << ")\n";}
 
-    // std::string SetAssetFile(std::string file) {_asset_file = file;}; 
-    //virtual Render() // NOTE come back to this, did have some concept of virtual "render" function
-    //virtual PowerUp();
-    // virtual void Render() const = 0; // TODO, eventually make Render "pure"
-    //overload constructor with default empty asset file
-    // Food(const std::string& name) : _name(name), _asset_file("") {}
-    // std::string GetAssetFile() const { return _asset_file; }
-
-    // virtual void Render() const {
-    //     std::cout << "Rendering food: " << _name << " from asset file: " << _asset_file << std::endl;
-    // }
 
 protected:
     std::string const _name;    // made this const 
@@ -55,20 +49,34 @@ protected:
 class Banana : public Food {
 
 public:
-    Banana() : Food("banana", "../assets/pactiles/banana.bmp") {}
+    Banana() : Food("banana", "../assets/items/banana.bmp") {}
     ~Banana() override = default;
 
 };
 
 class Cherries : public Food {
 public:
-    Cherries() : Food("cherries", "../assets/pactiles/cherry.bmp") {}
+    Cherries() : Food("cherries", "../assets/items/cherry.bmp") {}
     ~Cherries() override = default;
 };
 
+
+class Star : public Food {
+public:
+    Star() : Food("star", "../assets/items/star.bmp") {}
+    ~Star() override = default;
+};
+
+class Bomb : public Food {
+public:
+    Bomb() : Food("bomb", "../assets/items/bomb.bmp") {}
+    ~Bomb() override = default;
+};
+
+
 class Dot : public Food {
 public:
-    Dot(bool is_blinking = false) : Food("dot", "../assets/pactiles/dot.bmp"), _is_blinking(is_blinking) {}
+    Dot(bool is_blinking = false) : Food("dot", "../assets/items/dot.bmp"), _is_blinking(is_blinking) {}
     ~Dot() override = default;
 
 private:

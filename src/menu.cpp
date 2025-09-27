@@ -58,6 +58,7 @@ SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &messa
     if (!text_surface) {
         std::cerr << "Failed to create text surface: " << TTF_GetError() << std::endl;
         TTF_CloseFont(_font);
+        _font = nullptr; // reassign to avoid dangling pointer
         return nullptr;
     }
     

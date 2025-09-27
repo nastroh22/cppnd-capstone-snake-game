@@ -1,6 +1,8 @@
 #include "renderer.h"
 #include <iostream>
 #include <string>
+#include "utils.h"
+#include "constants.h"
 
 Renderer::Renderer(const std::size_t screen_width,
                    const std::size_t screen_height,
@@ -37,6 +39,17 @@ Renderer::Renderer(const std::size_t screen_width,
     std::cerr << "Renderer could not be created.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
   }
+
+  // Create Static Items and Enemy Textures:
+  _item_textures = RenderUtils::loadTexturesFromMap(
+    sdl_renderer,
+    Assets::itemTextureMap
+  );
+  for (const auto& [key, texture] : _item_textures) {
+    std::cout << "Loaded texture key: " << key << '\n';
+  }
+
+                                           
 }
 
 Renderer::~Renderer() {
@@ -47,6 +60,7 @@ Renderer::~Renderer() {
 void Renderer::Render(
     Snake const &snake, 
     const Food *food, 
+    std::string &render_item,
     const SDL_Point ai_location,
     SDL_Texture* ai_texture) 
 { 
@@ -63,11 +77,12 @@ void Renderer::Render(
   // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
   block.x = food->get_x() * block.w;
   block.y = food->get_y() * block.h;
-  
-  // Item texture
   block.x = food->get_x() * block.w;
   block.y = food->get_y() * block.h;
-  SDL_RenderCopy(sdl_renderer, food->get_texture(), nullptr, &block); // "block" is already an SDL_rect
+  
+  std::cout << "First access to the map? " << std::endl;
+  SDL_Texture *from_map = _item_textures[render_item];
+  SDL_RenderCopy(sdl_renderer, from_map, nullptr, &block); // "block" is already an SDL_rect
 
   // AI Texture
   enemy.w = block.w; 

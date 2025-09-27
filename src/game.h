@@ -39,6 +39,8 @@ class Game {
   std::uniform_int_distribution<int> random_w;
   std::uniform_int_distribution<int> random_h;
   std::uniform_real_distribution<float> random_food;
+  std::discrete_distribution<> item_choice;
+  std::string _render_item; // current item to render
 
   int score{0};
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <unordered_map>
 
 // constexpr std::size_t kFramesPerSecond{60};
 constexpr std::size_t kFramesPerSecond{60}; // For Debugging
@@ -98,6 +99,27 @@ const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFil
         }
     }
 };
+
+namespace Assets{
+    inline const std::unordered_map<std::string, std::string> itemTextureMap = {
+        { "banana", "../assets/items/banana.bmp" },
+        { "dot", "../assets/items/dot.bmp" },
+        { "cherries", "../assets/items/cherry.bmp" },
+        { "bomb", "../assets/items/bomb.bmp" },
+        { "star", "../assets/items/star.bmp" }
+        // Add more as needed
+    };
+
+    inline std::array<std::string, 5> itemNames = {"dot", "cherries", "banana", "star", "bomb"};
+    inline std::array<float, 5> itemProbs = {0.25, 0.25, 0.25, 0.15, 0.10}; // dot, cherry, banana, star, bomb
+    inline std::array<float, 5> itemScores = {1.0, 1.0, 1.0, 10.0, -5.0}; 
+
+    //add hawk
+
+    //add playable characters
+}
+
+
 
 /* Menu Format Constants
 ------------------------------------------------*/

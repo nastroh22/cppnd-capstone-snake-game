@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include "snake.h"
+#include <constants.h>
 
 
 // Note: possible use case of a template:
@@ -12,6 +13,9 @@ template <typename... FoodTypes>
 void AddFoods(std::vector<std::unique_ptr<Food>>& foods) {
     (foods.emplace_back(std::make_unique<FoodTypes>()), ...);
 }
+
+//TODO Same Pattern For Character Textures ?? 
+
 // NOTE: another pattern (for unequal number of food types is iterate over number of each type, emplacing in constructor)
 // Another nice pattern would be to use a shared pointer on the surface 
 // then render a bunch of dots using a shared resource (possibly for pacman game)
@@ -24,8 +28,13 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)){
 
-  AddFoods<Banana, Cherries, Dot>(foods);
+  // Pass Renderer here to init textures at construction
+  // I am also tempted to store queues as class variables
+
+  AddFoods<Banana, Cherries, Dot, Star, Bomb>(foods);
   PlaceFood();
+
+
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
@@ -44,7 +53,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   bool running = true;
 
   // Game Viz Inits Unique Textures (could move to main perhaps)
-  for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());}
+  // for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());} // Move to constructor
   SDL_Point ai_location = SDL_Point{20,20}; // initialize to same as constructor
   snake.InitHeadTexture(renderer.get(), characterSpriteFiles[character][0]);
   snake.InitBodyTexture(renderer.get(), characterSpriteFiles[character][1]);
@@ -53,7 +62,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
   while (running) {
     frame_start = SDL_GetTicks();
-    // std::cout << "Inside Game Loop" << std::endl;
 
     // Actually GETS move from AI
     std::optional<SDL_Point> msg = subscriberq->send(); 
@@ -64,7 +72,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update(ai_location);
-    renderer.Render(snake, food, ai_location, ai_texture);
+    renderer.Render(snake, food, _render_item, ai_location, ai_texture);
 
     frame_end = SDL_GetTicks();
 
@@ -80,7 +88,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     }
 
     // SENDS player loc to AI, giving it time to calc next move
-    // std::cout << "Where does it think the snake is ? " << static_cast<int>(snake.head_x) << ", " << static_cast<int>(snake.head_y) << std::endl;
     int send_x = static_cast<int>(snake.head_x);
     int send_y = static_cast<int>(snake.head_x);
     publisherq->receive(std::move(
@@ -99,38 +106,35 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // However, another (cleaner?) solution is to write a shutdown function in the queu that notifies all conditions
     // after the shutdown flag is set
     if (snake.alive == false) {
-      // Shutdown the ai thread  with shutdown flag
-      std::cout << "We set the shutdown flag" << std::endl;
+      // Shutdown the ai thread  with shutdown flag, stop queues if waiting
       shutdown_flag->store(true);
       std::this_thread::sleep_for(std::chrono::milliseconds(5)); // ensure time for clean shutdown
       subscriberq->shutdown();
       publisherq->shutdown();
+      // planner.stop(); // break planner loop if running
       return;
     }
-  
-
   }
 }
 
 void Game::PlaceFood() {
   int x, y;
   while (true) {
+    
+    // random location
     x = random_w(engine);
     y = random_h(engine);
 
-    // random food selection 
-    float rand = random_food(engine);
-    int food_index;
-    if (rand > 0.66) {
-        food_index = 0; // Banana
-    } else if (rand > 0.33) {
-        food_index = 1; // Cherry
-    } else {
-        food_index = 2; // Dot
-    }
-    food = foods[food_index].get();
+    std::discrete_distribution<> dist(
+      Assets::itemProbs.begin(), Assets::itemProbs.end()
+    );
+    int item_index = dist(engine);
+    _render_item=Assets::itemNames[item_index];
+    food = foods[0].get();
+    
     if (!snake.SnakeCell(x, y)) {
       food->set_position(x, y);
+      std::cout << "Returns?" << std::endl;
       return;
     }
   }
@@ -152,6 +156,7 @@ void Game::Update(SDL_Point const &ai_location) {
     snake.GrowBody();
     snake.speed += 0.02;
   }
+  std::cout << "Exiting Update?" << std::endl;
 }
 
 std::string Game::GetPlayerName(){
