@@ -2,6 +2,7 @@
 #define CHARACTER_H
 
 #include <string>
+#include <iostream>
 #include "SDL.h"
 
 
@@ -26,10 +27,14 @@ namespace RenderUtils{
         return texture;
     };
 
+    //minimal representation of all game items that Renderer can parse to render
+    struct Item {std::string name; int x; int y;};
+
     // Try this approach of reading in textures directly from a map of key/filepath pairs
-   inline std::unordered_map<std::string, SDL_Texture*>
-    loadTexturesFromMap(SDL_Renderer* renderer, const std::unordered_map<std::string, std::string>& files) {
-        std::unordered_map<std::string, SDL_Texture*> textures;
+    template<typename T>
+    inline std::unordered_map<T, SDL_Texture*>
+    loadTexturesFromMap(SDL_Renderer* renderer, const std::unordered_map<T, std::string>& files) {
+        std::unordered_map<T, SDL_Texture*> textures;
 
         for (const auto& [key, path] : files) {
             SDL_Texture* tex = InitTexture(renderer, path);
@@ -41,7 +46,16 @@ namespace RenderUtils{
         }
         return textures;
     }
-
+    template<typename KeyType>
+    inline void freeTextureMap(std::unordered_map<KeyType,SDL_Texture*> &texture_map) {
+        for (auto& [key, texture] : texture_map) {
+            if (texture) {
+                SDL_DestroyTexture(texture);
+                texture = nullptr; // avoid dangling pointer
+            }
+        }
+        texture_map.clear();
+    }
     template<size_t N>
     inline std::array<SDL_Texture*, N>
     loadTexturesFromArray(SDL_Renderer* renderer, const std::array<std::string, N>& files) {
@@ -56,6 +70,16 @@ namespace RenderUtils{
             }
         }
         return textures;
+    }
+    template<size_t N>
+    inline void freeTextureArray(std::array<SDL_Texture*, N>& textures) {
+        for (auto& texture : textures) {
+            if (texture) {
+                SDL_DestroyTexture(texture);
+                std::cout<<" Freed texture"<<std::endl;
+                texture = nullptr; // avoid dangling pointer
+            }
+        }
     }
 
     inline void drawBorder(SDL_Renderer* renderer, SDL_Rect rect, int thickness, SDL_Color color) {
@@ -77,24 +101,6 @@ namespace RenderUtils{
         SDL_Rect right = {rect.x + rect.w - thickness, rect.y, thickness, rect.h};
         SDL_RenderFillRect(renderer, &right);
     }
-
-    //minimal representation of all game items that Renderer can parse to render
-    struct Item {std::string name; int x; int y;};
-
-    // Refactor this to "render_utils" instead (or something) -- probably include text here as well
-    class Hawk {
-        public:
-            Hawk(SDL_Renderer* const renderer) {
-                hawk_texture = InitTexture(renderer, "../assets/hawk_000.bmp");
-            }
-            ~Hawk() {
-                if (hawk_texture) SDL_DestroyTexture(hawk_texture);
-            }
-            SDL_Texture* get() const { return hawk_texture; }
-
-        private:
-            SDL_Texture *hawk_texture = nullptr;
-    };
 }
 
 namespace StringUtils{
@@ -125,42 +131,19 @@ namespace StringUtils{
     }
 }
 
+// namespace ScoreUtils{
+//     //Todo
+//     int *parser = nullptr;
+// }
+
 #endif 
 
 /* More Utils to Consider: 
 
 
+// Probabluy Keep AppendRoot although ../assets path should be fine
 inline std::string appendRoot(std::string path){
     return std::string(PROJECT_ROOT_PATH) + path;
 }
-
-std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = {
-    {Sammy,  {appendRoot("/assets/snake_green_head.bmp"), 
-              appendRoot("/assets/snake_green_blob.bmp"),
-              appendRoot("/assets/snake_green_xx.bmp")}
-    },
-    {Cindy,  {appendRoot("/assets/snake_yellow_head.bmp"), 
-              appendRoot("/assets/snake_yellow_blob.bmp"),
-              appendRoot("/assets/snake_yellow_xx.bmp")}
-    },
-};
-
-// these might be specific to snake but can use common utils:
-
-void Snake::InitHeadTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_head_texture) SDL_DestroyTexture(snake_head_texture); // free existing resource
-    snake_head_texture = InitTexture(renderer, path);
-}
-
-void Snake::InitBodyTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_body_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
-    snake_body_texture = InitTexture(renderer, path);
-}
-
-void Snake::InitDiesTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
-    snake_dies_texture = InitTexture(renderer, path);
-}
-
 
 */

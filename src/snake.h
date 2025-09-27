@@ -2,11 +2,12 @@
 #define SNAKE_H
 
 #include <vector>
-#include "SDL.h"
 #include <unordered_map>
 #include <array>
 
-#include "menu.h" //TODO: remove the map files from here (see bottom of file)
+#include "SDL.h"
+#include "constants.h"
+#include "utils.h"
 
 class Snake {
  public:
@@ -19,48 +20,42 @@ class Snake {
         head_y(grid_height / 2) {}
 
   ~Snake(){
-    if (snake_head_texture) SDL_DestroyTexture(snake_head_texture);
-    if (snake_body_texture) SDL_DestroyTexture(snake_body_texture);
-    if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture);
+    std::cout<<" Freeing Snake Textures"<<std::endl;
+    RenderUtils::freeTextureArray(_texture_map);
   };
 
+  //pubic methods
   void Update(SDL_Point const &ai_location);
-
   void GrowBody();
   bool SnakeCell(int x, int y);
-
-  SDL_Texture* InitTexture(SDL_Renderer* renderer, const std::string& path);
-  void InitHeadTexture(SDL_Renderer* renderer, const std::string& path);
-  void InitBodyTexture(SDL_Renderer* renderer, const std::string& path);
-  void InitDiesTexture(SDL_Renderer* renderer, const std::string& path);
-
-  SDL_Texture *get_head_texture() const { return snake_head_texture; }
-  SDL_Texture *get_dies_texture() const { return snake_dies_texture; }
-  SDL_Texture *get_body_texture() const { return snake_body_texture; } // TODO - make separate body texture?
-
+  void InitTextures(SDL_Renderer* renderer, CharacterEnum character) {
+      _texture_map = RenderUtils::loadTexturesFromArray(
+          renderer,
+          characterFileMap.at(character)
+      );
+  }
+  SDL_Texture *get_head_texture() const { return _texture_map[0]; }
+  SDL_Texture *get_body_texture() const { return _texture_map[1]; } // TODO - make separate body texture?
+  SDL_Texture *get_ko_texture() const { return _texture_map[2]; }
+  
+  //public attributes
+  std::vector<SDL_Point> body;
   Direction direction = Direction::kUp;
-
   float speed{0.1f};
   int size{1};
   bool alive{true};
   float head_x;
   float head_y;
-  std::vector<SDL_Point> body;
 
  protected:
   void UpdateHead();
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell, SDL_Point const &ai_location);
-
-  SDL_Texture *snake_head_texture = nullptr;
-  SDL_Texture *snake_body_texture = nullptr;
-  SDL_Texture *snake_dies_texture = nullptr;
+  std::array<SDL_Texture*,NUM_CHARACTER_TEXTURES> _texture_map; // head, dies, body
 
   bool growing{false};
   int grid_width;
   int grid_height;
-};
 
-// TODO: check using this ??
-static std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterSpriteFiles = characterFileMap; ;
+};
 
 #endif

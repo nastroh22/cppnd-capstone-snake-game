@@ -1,17 +1,18 @@
 #include <iostream>
+#include <thread>
+#include <future>
+#include <chrono>
+#include <atomic>
+
 #include "controller.h"
 #include "game.h"
 #include "renderer.h"
 #include "scoreio.h"
 #include "menu.h"
 #include "constants.h"
-#include <thread>
-#include <future>
-#include <chrono>
 #include "enemy/planner.h"
 #include "queue.h"
 #include "SDL.h"
-#include <atomic>
 #include "snake.h"
 #include "utils.h"
 
@@ -58,7 +59,7 @@ int main() {
 
         // get character textures:
         CharacterEnum character = characterEnumMap.at(characterName);
-        RenderUtils::Hawk hawk(renderer.get());
+
         
         shutdown_flag->store(false);
         planner.start(); // maybe move the thread launching into this function
@@ -66,26 +67,26 @@ int main() {
         std::cout << "Launching planner thread " << std::endl;
         // std::future<bool> f = std::async(std::launch::async, [&planner](){return AI::run(planner);});
         std::future<bool> f = std::async(std::launch::async, &Planner::run, &planner);
-        std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
         
         {
           Game game(kGridWidth, kGridHeight);
+          game.InitCharacter(renderer, character); // init files from player's selected character
+          // game.initQueues(std::move(playerq.get()), std::move(aiq.get())); //TODO: game instance manages all related state
+          std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
           game.Run(controller,  
                   renderer,    
                   kMsPerFrame, 
                   aiq.get(),    // planner positions
                   playerq.get(), // player positions
-                  shutdown_flag, // kills planner thread
-                  character,  // Player's characer selection for rendering
-                  hawk.get() // Default enemy texture for rendering (TODO: add more types)
+                  shutdown_flag // kills planner thread
             );
         
           // some shutdown steps (TODO: Destroy Menu (and confirm no seg faults))
           shutdown_flag->store(true); // for manual quit path
-          aiq->clear(); playerq->clear();
+          // aiq->clear(); playerq->clear(); // Moved these calls inside game.Run();
           std::this_thread::sleep_for(std::chrono::milliseconds(500));
           planner.stop(); // std::cout << "Enemy thread is off: " << test << std::endl;
-          planner.debugRunFlag();
           std::cout << "flag: " << std::boolalpha << shutdown_flag->load() << std::endl;
           bool test = f.get(); // TODO: this could be causing the bug ?
           ScoreIO::Entry new_entry{Player, game.GetScore()};

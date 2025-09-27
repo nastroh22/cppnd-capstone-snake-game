@@ -1,16 +1,18 @@
 #pragma once
 
-#include "SDL.h"
-#include "SDL_ttf.h"
 // #include <array>
 #include <string>
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <unordered_map>
+
 #include "constants.h" //include Screen Dimensions
 #include "scoreio.h"
-#include "utils.h"
-#include <unordered_map>
+#include "utils.h" 
+#include "SDL.h"
+#include "SDL_ttf.h"
+
 
 
 /* "Dynamic Constants"
@@ -324,10 +326,6 @@ protected:
     bool _freeze_border = false; // to keep border on selected button
     int _textX, _textY; // for text positioning
 
-
-/*TODO's: 
-    Options: create options to customize test colors and Fonts
-*/
 
 // I think the protected constructor pattern works to make sure no abstract button can be created // TODO re-use for "Menu"
     Button(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text)

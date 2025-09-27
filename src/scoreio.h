@@ -5,7 +5,6 @@
 
 namespace fs = std::filesystem;
 
-
 namespace ScoreIO {
     struct Entry {
         std::string name;

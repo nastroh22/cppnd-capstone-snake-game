@@ -122,6 +122,7 @@ const std::string CHARACTER_NAMES[]= {"Sammy", "Cindy"}; //for display
 constexpr SDL_Color CHARACTER_COLORS[] = {AVOCADO, GOLD};
 
 // Bitmap files
+constexpr int NUM_CHARACTER_TEXTURES = 3; // head, body, dead
 const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFileMap = 
 {
     {CharacterEnum::Sammy, {

@@ -1,6 +1,7 @@
-#include "snake.h"
 #include <cmath>
 #include <iostream>
+
+#include "snake.h"
 
 void Snake::Update(SDL_Point const &ai_location) {
   SDL_Point prev_cell{
@@ -88,42 +89,5 @@ bool Snake::SnakeCell(int x, int y) {
   return false;
 }
 
-SDL_Texture* Snake::InitTexture(SDL_Renderer* renderer, const std::string& path) {
-  SDL_Surface* surface = SDL_LoadBMP(path.c_str());
-  if (!surface) {
-    std::cerr << "Failed to load snake BMP: " << path  << " " << SDL_GetError() << std::endl;
-    return nullptr;
-  }
-
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (!texture) {
-    std::cerr << "Failed to create  texture: " <<  path  << " " << SDL_GetError() << std::endl;
-    // Handle error or set to nullptr
-  }
-  else {
-    std::cout << "Loaded Snake Texture from " << path << std::endl;
-  }
-  SDL_FreeSurface(surface);
-  std::cout << "Texture pointer here : " << texture << std::endl;
-  int w = 0, h = 0;
-  SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
-  std::cout << "Raw loaded texture is size: " << w << " x " << h << "\n";
-  return texture;
-}
-
-void Snake::InitHeadTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_head_texture) SDL_DestroyTexture(snake_head_texture); // free existing resource
-    snake_head_texture = InitTexture(renderer, path);
-}
-
-void Snake::InitBodyTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_body_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
-    snake_body_texture = InitTexture(renderer, path);
-}
-
-void Snake::InitDiesTexture(SDL_Renderer* renderer, const std::string& path) {
-    if (snake_dies_texture) SDL_DestroyTexture(snake_dies_texture); // free existing resource
-    snake_dies_texture = InitTexture(renderer, path);
-}
 
 

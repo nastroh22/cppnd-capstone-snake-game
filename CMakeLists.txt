@@ -28,9 +28,8 @@ message(STATUS "SDL2_ttf library    : ${SDL2_TTF_LIBRARY} ${SDL2_LIBRARIES}")
 include_directories(${SDL2_TTF_INCLUDE_DIR})
 
 # target
-add_executable(SnakeGame src/main.cpp src/game.cpp src/controller.cpp 
-                        src/renderer.cpp src/snake.cpp src/food.cpp 
-                        src/scoreio.cpp src/menu.cpp src/enemy/planner.cpp)
+add_executable(SnakeGame src/main.cpp src/game.cpp src/controller.cpp src/renderer.cpp 
+                            src/snake.cpp src/scoreio.cpp src/menu.cpp src/enemy/planner.cpp)
 
 # link
 string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)

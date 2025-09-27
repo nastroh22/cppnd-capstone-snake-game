@@ -1,24 +1,18 @@
 #include "game.h"
 #include <iostream>
 #include "SDL.h"
-#include "food.h"
 #include <memory>
 #include <optional>
 #include "snake.h"
 #include <constants.h>
 
 
-// Note: possible use case of a template:
-template <typename... FoodTypes>
-void AddFoods(std::vector<std::unique_ptr<Food>>& foods) {
-    (foods.emplace_back(std::make_unique<FoodTypes>()), ...);
-}
+// Note: possible use case of a template DEPRECATE
+// template <typename... FoodTypes>
+// void AddFoods(std::vector<std::unique_ptr<Food>>& foods) {
+//     (foods.emplace_back(std::make_unique<FoodTypes>()), ...);
+// }
 
-//TODO Same Pattern For Character Textures ?? 
-
-// NOTE: another pattern (for unequal number of food types is iterate over number of each type, emplacing in constructor)
-// Another nice pattern would be to use a shared pointer on the surface 
-// then render a bunch of dots using a shared resource (possibly for pacman game)
 
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
@@ -33,9 +27,8 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
   // Pass Renderer here to init textures at construction
   // I am also tempted to store queues as class variables
 
-  AddFoods<Banana, Cherries, Dot, Star, Bomb>(foods);
-  PlaceItem();
-
+  // AddFoods<Banana, Cherries, Dot, Star, Bomb>(foods); // shouldn't need this anymore
+  // PlaceItem(); // can probably just do this in the update
 
 }
 
@@ -43,9 +36,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
                std::size_t target_frame_duration,
                MessageQueue<SDL_Point> *subscriberq,
                MessageQueue<SDL_Point> *publisherq,
-               std::shared_ptr<std::atomic<bool>> shutdown_flag,
-               CharacterEnum character,
-               SDL_Texture* ai_texture)
+               std::shared_ptr<std::atomic<bool>> shutdown_flag)
 {
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
@@ -57,9 +48,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   // Game Viz Inits Unique Textures (could move to main perhaps)
   // for (auto& food_ptr : foods) {food_ptr->init_texture(renderer.get());} // Move to constructor
   SDL_Point ai_location = SDL_Point{20,20}; // initialize to same as constructor
-  snake.InitHeadTexture(renderer.get(), characterSpriteFiles[character][0]);
-  snake.InitBodyTexture(renderer.get(), characterSpriteFiles[character][1]);
-  snake.InitDiesTexture(renderer.get(), characterSpriteFiles[character][2]);
+
   //TODO probably move the hawk texture into this as well (??)
 
   while (running) {
@@ -74,7 +63,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update(ai_location);
-    renderer.Render(snake, food, itemStruct, ai_location, ai_texture);
+    renderer.Render(snake, itemStruct, ai_location);
 
     frame_end = SDL_GetTicks();
 
@@ -153,7 +142,6 @@ void Game::Update(SDL_Point const &ai_location) {
     snake.GrowBody();
     snake.speed += 0.02;
   }
-  std::cout << "Exiting Update?" << std::endl;
 }
 
 std::string Game::GetPlayerName(){

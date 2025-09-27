@@ -1,13 +1,12 @@
 #ifndef RENDERER_H
 #define RENDERER_H
-
 #include <vector>
+#include <unordered_map>
+#include <array>
+
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "snake.h"
-#include "food.h"
-#include <unordered_map>
-#include <array>
 // #include <SDL2/SDL_image.h>
 
 class Renderer {
@@ -17,12 +16,14 @@ class Renderer {
   ~Renderer();
 
   void Render(Snake const &snake, 
-              const Food *food, 
               RenderUtils::Item &item,
-              const SDL_Point ai_location = SDL_Point{0,0},
-              SDL_Texture *ai_texture = nullptr); //old way: SDL_Point const &food
+              const SDL_Point ai_location = SDL_Point{0,0});
   void UpdateWindowTitle(int score, int fps);
-  SDL_Renderer* get() const { return sdl_renderer; } // needed so I can init textures in Food class
+  SDL_Renderer* get() const { return sdl_renderer; } // to pass sdl_renderer to other inits
+  void animateHawk(SDL_Rect const &block);
+  void RenderHawk(SDL_Rect block, SDL_Point const &ai_location);
+  void RenderSnake(SDL_Rect block, Snake const &snake);
+  void RenderItem(SDL_Rect block, RenderUtils::Item const &item);
 
  private:
   SDL_Window *sdl_window;
@@ -39,6 +40,12 @@ class Renderer {
   int _flap_frame_count = 0;
   bool _flip_hawk_direction = false;
   int _prev_x = 0;
+  int _hawk_idx = 0;
+
+  //reuse blocks
+  SDL_Rect _snake_block;
+  SDL_Rect _item_block;
+  SDL_Rect _hawk_block;
 
 
   const std::size_t screen_width;

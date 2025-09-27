@@ -1,11 +1,12 @@
-#include "SDL.h"
-#include "menu.h"
-#include "SDL_ttf.h"
 #include <string>
 #include <iostream>
 #include <algorithm> 
-#include "scoreio.h"
 #include <cassert>
+
+#include "SDL.h"
+#include "menu.h"
+#include "SDL_ttf.h"
+#include "scoreio.h" //move to utils
 
 // ***************************** Text Defs  *********************************** //
 Text::Text(
