@@ -4,16 +4,17 @@
 #include <chrono>
 #include <atomic>
 
+#include "constants.h"
+// #include "queue.h"
 #include "controller.h"
 #include "game.h"
-#include "renderer.h"
-#include "menu.h"
-#include "constants.h"
-#include "enemy/planner.h"
-#include "queue.h"
-#include "SDL.h"
 #include "snake.h"
+#include "renderer.h"
 #include "utils.h"
+#include "enemy/planner.h"
+#include "menu/menu.h"
+#include "SDL.h"
+
 
 enum class GameState { MENU, PLAYING, EXIT };
 

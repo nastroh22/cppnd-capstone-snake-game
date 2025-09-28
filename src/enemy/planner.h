@@ -1,13 +1,16 @@
 #pragma once
 
-#include "./queue.h"
-#include "SDL.h"
+
 #include <vector>
 #include <algorithm>
-#include "./constants.h"
 #include <memory>
 #include <atomic>
 #include <optional>
+
+#include "SDL.h"
+#include "./utils.h"
+#include "./constants.h"
+
 
 // NOTE: Renderer is using a subgrid, which could make A* more feasible actually (future version)
 // kGridWidth, kGridHeight
@@ -83,5 +86,5 @@ class Planner {
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
         SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering
 
-        
+
 };

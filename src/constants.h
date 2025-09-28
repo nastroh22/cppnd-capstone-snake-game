@@ -48,82 +48,122 @@ constexpr SDL_Color FIRE = {252, 78, 41, 255};
 /* MENU COLOR THEMES
 ----------------------------------------------*/
 // Text Colors
-constexpr SDL_Color DEFAULT_TEXT_COLOR = WHITE;
-constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE;
+
+// enum Defaults
+constexpr SDL_Color BACKGROUND_COLOR = BLACK;
 constexpr SDL_Color TITLE_COLOR = LEMON;
+constexpr SDL_Color DEFAULT_TEXT_COLOR = WHITE;
+constexpr SDL_Color DEFAULT_WINDOW_COLOR = FOREST;
+constexpr SDL_Color DEFAULT_WINBORDER_COLOR = MOSS;
+constexpr SDL_Color DEFAULT_HOVER_COLOR = LEMON;
+constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
+constexpr SDL_Color SELECT_BORDER_COLOR = RETRO_BLUE; // TODO: check in use ?
+constexpr SDL_Color HIGHLIGHT_TEXT_COLOR = DEEPBLUE; // TODO: check in use ?
+
+constexpr SDL_Color BACK_BUTTON_COLOR = RUST; // generic back button (kind of working like a default right now)
+constexpr SDL_Color DEFAULT_BACK_BUTTON_COLOR = BACK_BUTTON_COLOR; // for consistency
+constexpr SDL_Color HOVER_BORDER_COLOR = LEMON;
+
+struct MainMenuConstants {
+    static inline constexpr SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};
+    static inline constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75};
+    static inline constexpr SDL_Rect SCORE_BUTTON_RECT = {220, 350, 200, 75};
+    static inline constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
+
+    static inline constexpr SDL_Color PLAY_BUTTON_COLOR = MOSS ; //SPRING; //ARMY
+    static inline constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
+    static inline constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
+    static inline constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
+};
+
+inline constexpr MainMenuConstants MMConst{};
+
 
 // Button Backgrounds (TODO Bundle into Menu Type Blocks)
-constexpr SDL_Color PLAY_BUTTON_COLOR = MOSS ; //SPRING; //ARMY
-constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
-constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
-constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
-constexpr SDL_Color BACK_BUTTON_COLOR = RUST;
-constexpr SDL_Color START_BUTTON_COLOR = MOSS;
-constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
-constexpr SDL_Color HOVER_BORDER_COLOR = LEMON; // for hover effect
-constexpr SDL_Color SELECT_BORDER_COLOR = RETRO_BLUE; // for selected effect
-constexpr SDL_Color BACKGROUND_COLOR = BLACK;
+// constexpr SDL_Color PLAY_BUTTON_COLOR = MOSS ; //SPRING; //ARMY
+// constexpr SDL_Color CHAR_BUTTON_COLOR = OLIVE;
+// constexpr SDL_Color SCORE_BUTTON_COLOR = AVOCADO;
+// constexpr SDL_Color QUIT_BUTTON_COLOR = RUST;
+// constexpr SDL_Color START_BUTTON_COLOR = MOSS;
 
+struct PlayerEntryConstants {
+    static inline constexpr SDL_Color WINDOW_COLOR = DEFAULT_WINDOW_COLOR;
+    static inline constexpr SDL_Color WINBORDER_COLOR = DEFAULT_WINBORDER_COLOR;
+    static inline constexpr SDL_Color NAME_WINDOW_BORDER_COLOR = MINT;
+    static inline constexpr SDL_Color NAME_WINDOW_COLOR = WHITE;
+    static inline constexpr SDL_Color NAME_WINDOW_TEXT_COLOR = BLACK;
+    static inline constexpr int NAME_TEXT_FONT_SIZE = 28;
 
-// namespace Defaults { 
-//     constexpr SDL_Color BUTTON_COLOR = GREY;
-//     constexpr SDL_Color BUTTON_HOVER_COLOR = HOVER_BORDER_COLOR;
-//     constexpr SDL_Color BUTTON_SELECT_COLOR = SELECT_BORDER_COLOR;
-//     constexpr SDL_Color WINDOW_COLOR = SLATE;
-//     constexpr SDL_Color WINDOW_BORDER_COLOR = WHITE;
-//     constexpr SDL_Rect WIN_POSITION = {
-//         static_cast<int>(0.1 * kScreenWidth), 
-//         static_cast<int>(0.1 * kScreenHeight),
-//         static_cast<int>(0.8 * kScreenWidth), 
-//         static_cast<int>(0.8 * kScreenHeight)
-//     };
-// }
+    static inline constexpr SDL_Color START_BUTTON_COLOR = MOSS;
+    static inline constexpr SDL_Color BACK_BUTTON_COLOR = DEFAULT_BACK_BUTTON_COLOR;
+    static inline constexpr SDL_Rect START_BUTTON_RECT = {220, 250, 200, 75};
+    static inline constexpr SDL_Rect BACK_BUTTON_RECT = {220, 350, 200, 75};
 
+    
+    const std::string DEFAULT_PLAYER_NAME = "Player1";
+    const int CURSOR_BLINK_INTERVAL_MS = 500;
+};
+inline const PlayerEntryConstants PEConst{};
 
+// Start Menu Constants
+// constexpr SDL_Rect START_BUTTON_RECT = {220, 250, 200, 75};
+// constexpr SDL_Rect BACK_BUTTON_RECT = {220, 350, 200, 75};
+// const std::string DEFAULT_PLAYER_NAME = "Player1";
 
-// constexpr SDL_Color DEFAULT_BORDER_COLOR = WHITE;
-constexpr SDL_Color DEFAULT_HOVER_COLOR = LEMON;
+struct ScoreMenuConstants {
+    static inline constexpr SDL_Color SCORE_CELL_COLOR = BLACK;
+    static inline constexpr SDL_Color SCORE_TEXT_COLOR = LEMON;
+    static inline constexpr SDL_Color SCORE_CELL_BORDER_COLOR = RETRO_BLUE;
+    static inline constexpr SDL_Color SCORE_WINDOW_COLOR = SLATE;
+    static inline constexpr SDL_Color SCORE_WINDOW_BORDER_COLOR = LEMON;
 
+    static inline constexpr SDL_Color SCORE_UP_BUTTON_COLOR = MINT;
+    static inline constexpr SDL_Color SCORE_DOWN_BUTTON_COLOR = DEEPBLUE;
+};
+inline constexpr ScoreMenuConstants ScoreConst{};
 
-// Further Bundling of Menu Components
-// struct PlayButton {
-//     constexpr SDL_Color COLOR = MOSS;
-//     constexpr SDL_Color HOVER_COLOR = HOVER_BORDER_COLOR;
-//     constexpr SDL_Color SELECT_COLOR = FIRE;
-//     constexpr SDL_Rect  RECT = {220, 150, 200, 75};
-//     // rect etc.
-// };
-
-
-// struct CharMenuButton {
-//     constexpr SDL_Color COLOR = OLIVE;
-//     constexpr SDL_Color HOVER_COLOR = DEFAULT_HOVER_COLOR;
-//     constexpr SDL_Color SELECT_COLOR = FIRE;
-//     constexpr SDL_Rect  BUTTON_RECT = {220, 250, 200, 75}; 
-// };
-// Maybe group by menus instead... buttons being visually close helps see the layout
-
+// // Colors are customizable
+// constexpr SDL_Color SCORE_CELL_COLOR = BLACK;
+// constexpr SDL_Color SCORE_TEXT_COLOR = LEMON;
+// constexpr SDL_Color SCORE_CELL_BORDER_COLOR = RETRO_BLUE;
+// constexpr SDL_Color SCORE_WINDOW_COLOR = SLATE;
+// constexpr SDL_Color SCORE_WINDOW_BORDER_COLOR = LEMON;
 
 
 /* MENU COLOR THEMES
 ----------------------------------------------*/
-constexpr SDL_Color NAME_WIN_BORDER_COLOR = MINT;
-constexpr SDL_Color NAME_WIN_COLOR = WHITE;
-constexpr SDL_Color NAME_WIN_TEXT_COLOR = BLACK;
-
-// Main Button Positions 
-// TODO: also generate these positions dynamically based on screen size
-constexpr SDL_Rect PLAY_BUTTON_RECT = {220, 150, 200, 75};  // x,y,w,h
-constexpr SDL_Rect CHAR_BUTTON_RECT = {220, 250, 200, 75}; 
-constexpr SDL_Rect SCORE_BUTTON_RECT = {220, 350, 200, 75};
-constexpr SDL_Rect QUIT_BUTTON_RECT = {220, 450, 200, 75};
+// constexpr SDL_Color NAME_WIN_BORDER_COLOR = MINT;
+// constexpr SDL_Color NAME_WIN_COLOR = WHITE;
+// constexpr SDL_Color NAME_WIN_TEXT_COLOR = BLACK;
 
 
-/* Character Menu Constants
+/* Menu Format Constants
+------------------------------------------------*/
+struct CharacterMenuConstants {
+    SDL_Color WINBORDER_COLOR = DEFAULT_WINBORDER_COLOR;
+    SDL_Color WINDOW_COLOR = DEFAULT_WINDOW_COLOR;
+
+    SDL_Rect BACK_BUTTON_RECT = {220, 400, 200, 75};
+    SDL_Color BACK_BUTTON_COLOR = DEFAULT_BACK_BUTTON_COLOR;
+};
+inline constexpr CharacterMenuConstants CharConst{};
+
+constexpr int CHARACTER_TOP_OFFSET = 75; //offset to leave room for title (char menu begins here)
+constexpr SDL_Rect CHARACTER_BACK_BUTTON_RECT = {220, 400, 200, 75};
+constexpr int CHARACTER_BUTTON_PADDING_X = 50;
+constexpr int CHARACTER_BUTTON_PADDING_Y = 50;
+constexpr int NUM_CHARACTER_GRID_COLUMNS = 2; 
+constexpr SDL_Color CHARACTER_BUTTON_BORDER_COLOR = WHITE; // currently does nothing
+
+
+
+
+/* Character Renderings and Names
 ------------------------------------------------*/
 enum CharacterEnum {Sammy, Sandy}; // arbitrary, but consistent naming
 const std::string CHARACTER_NAMES[]= {"Sammy", "Sandy"}; //for display
 constexpr SDL_Color CHARACTER_COLORS[] = {AVOCADO, GOLD};
+static std::unordered_map<std::string, CharacterEnum> characterEnumMap;
 
 // Bitmap files
 constexpr int NUM_CHARACTER_TEXTURES = 3; // head, body, dead
@@ -184,32 +224,3 @@ namespace Assets{
     // Future Extensions, add more enemies. Make Configurable via level state variables.
 
 }
-
-
-
-/* Menu Format Constants
-------------------------------------------------*/
-constexpr int CHARACTER_TOP_OFFSET = 75; //offset to leave room for title (char menu begins here)
-constexpr SDL_Rect CHARACTER_BACK_BUTTON_RECT = {220, 400, 200, 75};
-constexpr int CHARACTER_BUTTON_PADDING_X = 50;
-constexpr int CHARACTER_BUTTON_PADDING_Y = 50;
-constexpr int NUM_CHARACTER_GRID_COLUMNS = 2; 
-constexpr SDL_Color CHARACTER_BUTTON_BORDER_COLOR = WHITE; // currently does nothing
-static std::unordered_map<std::string, CharacterEnum> characterEnumMap;
-
-
-// Colors are customizable
-constexpr SDL_Color SCORE_CELL_COLOR = BLACK;
-constexpr SDL_Color SCORE_TEXT_COLOR = LEMON;
-constexpr SDL_Color SCORE_CELL_BORDER_COLOR = RETRO_BLUE;
-constexpr SDL_Color SCORE_WINDOW_COLOR = SLATE;
-constexpr SDL_Color SCORE_WINDOW_BORDER_COLOR = LEMON;
-
-
-// Start Menu Constants
-constexpr SDL_Rect START_BUTTON_RECT = {220, 250, 200, 75};
-constexpr SDL_Rect BACK_BUTTON_RECT = {220, 350, 200, 75};
-const std::string DEFAULT_PLAYER_NAME = "Player1";
-
-// Cursor
-const int CURSOR_BLINK_INTERVAL_MS = 500;

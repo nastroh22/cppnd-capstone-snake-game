@@ -1,6 +1,6 @@
-#include "planner.h"
 #include <iostream>
 #include <cmath>
+#include "planner.h"
 
 SDL_Point Planner::getNextMove() {
     // Dummy logic for now, move in square pattern

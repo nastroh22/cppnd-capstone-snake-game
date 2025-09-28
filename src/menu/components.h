@@ -1,29 +1,30 @@
-#include "constants.h"
+#pragma once
 #include "SDL.h"
-#include "utils.h"
-// #include "menu.h"
+#include "./utils.h"
+#include "./constants.h"
+
+// Character Menu Positions
+// constexpr SDL_Rect CHARACTER_BUTTON_RECT = {220, 350, 200, 75};
+
+// TODO : Font Options
+// maybe an even cooler feature... add themes (future)
+
 
 /* "Dynamic Constants"
 ------------------------------- */
+
+
 //Window Positions
 static int border_width = static_cast<int>(.15*kScreenWidth);
 static int border_height = static_cast<int>(.10*kScreenHeight);
-const SDL_Rect WIN_POSITION = {
+const SDL_Rect WINDOW_POSITION = {
     border_width, 
     border_height,
     static_cast<int>(kScreenWidth - 2*border_width), 
     static_cast<int>(kScreenHeight-2*border_height)
 };
-constexpr SDL_Color WINDOW_COLOR = FOREST;
-constexpr SDL_Color WINBORDER_COLOR = MOSS;
 
-// const SDL_Rect NAME_WIN_POSITION= {
-//     static_cast<int>(.05*kScreenWidth),
-//     static_cast<int>(.10*kScreenHeight),
-//     static_cast<int>(.90*kScreenWidth),
-//     static_cast<int>(.15*kScreenHeight)
-// };
-const SDL_Rect NAME_WIN_POSITION = {
+const SDL_Rect NAME_WINDOW_POSITION = {
     static_cast<int>(1.2*border_width), 
     static_cast<int>(2*border_height),
     static_cast<int>(kScreenWidth - 2.4*border_width),
@@ -32,7 +33,6 @@ const SDL_Rect NAME_WIN_POSITION = {
 
 // NOTE: button rectangles generated dynamically based on screen size and number of characters
 const int NUM_CHARACTERS = static_cast<size_t>(sizeof(CHARACTER_NAMES) / sizeof(CHARACTER_NAMES[0]));
-
 
 // "IIFE" (Immediately Invoked Function Expression), lambda is void so no assignment // could also move to apprpriate spot
 static auto init = []() {
@@ -43,13 +43,11 @@ static auto init = []() {
 }();
 
 const SDL_Rect SCORE_TABLE_RECT = {
-    WIN_POSITION.x + 10,
-    WIN_POSITION.y + 60, // need room for Text
-    static_cast<int>(WIN_POSITION.w - 20), 
-    static_cast<int>(WIN_POSITION.h - 160) // pad 100 for buttons
+    WINDOW_POSITION.x + 10,
+    WINDOW_POSITION.y + 60, // need room for Text
+    static_cast<int>(WINDOW_POSITION.w - 20), 
+    static_cast<int>(WINDOW_POSITION.h - 160) // pad 100 for buttons
 };
-constexpr SDL_Color SCORE_UP_BUTTON_COLOR = MINT;
-constexpr SDL_Color SCORE_DOWN_BUTTON_COLOR = DEEPBLUE;
 
 const int score_button_pad = 10;
 const int score_button_width = static_cast<int>(SCORE_TABLE_RECT.w/3) - score_button_pad; // pad for spacing
@@ -73,7 +71,6 @@ const SDL_Rect SCORE_BACK_BUTTON_RECT = {
     score_button_width,
     80
 };
-
 
 #define DISABLE_COPY_ENABLE_MOVE(ClassName)            \
     ClassName(const ClassName&) = delete;              \
@@ -130,7 +127,6 @@ class Window {
         SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // could make customizable
         Text _title;
         int _text_x, _text_y; // for text positioning
-        std::string _cellText;
         bool _shouldUpdate = false;
         // Text _content; // could be vector of texts for multiple lines
     
@@ -163,36 +159,38 @@ class Window {
         void virtual Render(SDL_Renderer* renderer);
 };
 
-// TODO: a Window and a cell are very similar, could refactor to avoid code duplication
-class Cell : public Window {
+class DynamicWindow : public Window {
     std::string _cellText;
     bool _shouldUpdate = false;
 
     public:
-        Cell(SDL_Renderer* renderer, const std::string& text, SDL_Color cell_color, 
-                SDL_Color border_color, SDL_Rect rect, int text_font_size = 24, SDL_Color text_color = SCORE_TEXT_COLOR) :
+        DynamicWindow(SDL_Renderer* renderer, const std::string& text, SDL_Color cell_color, 
+                SDL_Color border_color, SDL_Rect rect, int text_font_size = 24, SDL_Color text_color = ScoreConst.SCORE_TEXT_COLOR) :
                     Window(renderer, text, cell_color, border_color, rect, text_font_size, text_color), _cellText(text) 
                     {
                         centerText();
                         std::cout << "Cell created: " << text << " " <<  _text_y << _text_x <<std::endl;
 
                     };
-        ~Cell() = default; // will call _text destructor by default
-        DISABLE_COPY_ENABLE_MOVE(Cell);
+        ~DynamicWindow() = default; // will call _text destructor by default
+        DISABLE_COPY_ENABLE_MOVE(DynamicWindow);
         virtual void Render(SDL_Renderer* renderer) override;
         void UpdateText(const std::string &new_text) {
             _cellText = new_text; _shouldUpdate = true;
         }
-        // Next TODO: either reduce Text size (if goes out of bounds or replace with ... and return option for player to view it)
+        // Possible TODO: either reduce Text size (if goes out of bounds or replace with ... and return option for player to view it)
+        // or enforce a limit on text length when updating
 };
 
+enum PageToggle {
+    UP, 
+    DOWN, 
+    TOP, 
+    NONE
+};
 
-enum PageToggle {UP, DOWN, TOP, NONE};
-
-//"TextTable"
-class TableWindow  {
-    // A Grid of Cells with Static Text (as opposed to InputWindow, which is dynamic)
-    // although since switch to dynamic, could possibly be refactored with just unique functions 
+class Table  {
+    // A Grid of Cells with Dynamic Text (for loading/saving)
     int const _rows;
     int const _cols;
     SDL_Rect const _tableRect; 
@@ -200,15 +198,15 @@ class TableWindow  {
     SDL_Color const _cellBorderColor; 
     SDL_Color const _textColor;
     int const _textFontSize = 24; 
-    std::vector<std::vector<Cell>> gridSpec;
+    std::vector<std::vector<DynamicWindow>> gridSpec;
     std::vector<std::vector<std::string>> gridData;
     int _offset = 0; //for scrolling
 
     public:
-        TableWindow(SDL_Rect tableDims, SDL_Color cellColor = WHITE, SDL_Color cellBorderColor = BLACK, SDL_Color cellTextColor = WHITE, int rows=5, int cols=2) :
+        Table(SDL_Rect tableDims, SDL_Color cellColor = WHITE, SDL_Color cellBorderColor = BLACK, SDL_Color cellTextColor = WHITE, int rows=5, int cols=2) :
             _tableRect(tableDims), _cellColor(cellColor), _cellBorderColor(cellBorderColor), _textColor(cellTextColor), _rows(rows), _cols(cols) {};
-        ~TableWindow() = default;
-        // DISABLE_COPY_ENABLE_MOVE(TableWindow);
+        ~Table() = default;
+        // DISABLE_COPY_ENABLE_MOVE(Table);
         void buildGrid(SDL_Renderer *renderer);
         void UpdateCells(int start_index); 
         void Render(SDL_Renderer* renderer) {
@@ -231,9 +229,155 @@ class TableWindow  {
                 resetOffset();
             }
             else{
-                std::cout << "(TableWindow) Cannot scroll further in that direction: " 
+                std::cout << "(Table) Cannot scroll further in that direction: " 
                     << _offset <<  " " << gridData.size() << " " <<  direction << std::endl;
             }
         }
         void resetOffset() { _offset = 0; UpdateCells(_offset);}
+};
+
+// **************************************** Core Button Defs ******************************************************* //
+class Menu; // forward declaration needed
+enum class MenuState { // Buttons tied to MenuStates
+    MAIN_MENU,
+    SCORE_MENU,
+    CHARACTER_MENU,
+    PLAYER_NAME,
+    PLAY,
+    BACK,
+    NONE,
+    QUIT
+};
+
+class Button {
+
+protected:
+    Text _text;
+    const SDL_Rect _buttonRect; // for positioning button
+    const SDL_Color _buttonColor; // for button color
+    const MenuState _return_state = MenuState::NONE; // default state
+    SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // non-const to enable hover effect
+    std::string label = "Button";
+    int _borderThickness = 2; // could make customizable
+    bool _freeze_border = false; // to keep border on selected button
+    int _textX, _textY; // for text positioning
+
+
+// I think the protected constructor pattern works to make sure no abstract button can be created // TODO re-use for "Menu"
+    Button(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text)
+        : _return_state(label), _buttonColor(color), _buttonRect(rect), 
+        _text(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, text, DEFAULT_TEXT_COLOR) 
+        {
+           // default centered text
+           _textX =  _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2;
+           _textY = _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2;
+        }
+
+public:
+    virtual ~Button() = default; // will call _text destructor by default
+
+    // State Checkers
+    bool wasClicked(const SDL_Point& mouse_point) const { 
+        return SDL_PointInRect(&mouse_point, &_buttonRect);
+    }
+    bool isHovered(const SDL_Point& mouse_point) const { 
+        return SDL_PointInRect(&mouse_point, &_buttonRect);
+    }
+    // buttons don't mutate their own state, but can mutate container state
+    virtual MenuState onClick(Menu* container = nullptr) const { return _return_state; } 
+
+    // Hover and Select Effects
+    void toggleHover(const SDL_Point& mousePoint) {
+        if (_freeze_border) { 
+            return; // no change if frozen/selected
+        } 
+        if (SDL_PointInRect(&mousePoint, &_buttonRect)) {
+            // Change border color on hover
+            _borderColor = HOVER_BORDER_COLOR;
+            _borderThickness = 4; //thicker border
+        } 
+        else {
+            // Revert to default border color
+            _borderColor = DEFAULT_BORDER_COLOR;
+            _borderThickness = 2;
+        }
+    }
+    void select() {
+        _borderColor = SELECT_BORDER_COLOR;
+        _freeze_border = true; // keep border on selected button
+    }
+    void unselect() {
+        _borderColor = HOVER_BORDER_COLOR;
+        _freeze_border = false;
+    }
+
+    // Setter Utils
+    void setX(int x) { _textX = x; }
+    void setY(int y) { _textY = y; }
+
+    // Render Core Button
+    virtual void Render(SDL_Renderer* renderer){
+        SDL_SetRenderDrawColor(renderer, _buttonColor.r,  _buttonColor.g,  _buttonColor.b,  _buttonColor.a);
+        SDL_RenderFillRect(renderer, &_buttonRect);
+        RenderUtils::drawBorder(renderer, _buttonRect, _borderThickness, _borderColor);
+        _text.display(renderer, _textX, _textY);
+    }
+
+
+    // for debugging / check formats
+    void printProperties() const {
+        std::cout << "Button Label: " << label << "\n";
+        std::cout << "Button Rect: (" << _buttonRect.x << ", " << _buttonRect.y << ", " << _buttonRect.w << ", " << _buttonRect.h << ")\n";
+        std::cout << "Button Color: (" << static_cast<int>(_buttonColor.r) << ", " 
+                  << static_cast<int>(_buttonColor.g) << ", " 
+                  << static_cast<int>(_buttonColor.b) << ", " 
+                  << static_cast<int>(_buttonColor.a) << ")\n";
+        std::cout << "Return State: " << static_cast<int>(_return_state) << "\n"; // cast enum to int for display
+    }
+    void printLabel() const { std::cout << "Button Label: " << label << std::endl; }
+
+};
+
+
+class ImageButton : public Button 
+{
+    std::string _asset_path;
+    SDL_Texture* _image_texture = nullptr;
+
+    public:
+    ImageButton(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text, std::string image_asset_path)
+        : Button(renderer, label, color, rect, text), _asset_path(std::move(image_asset_path))
+    {
+        // load image texture
+        _image_texture = RenderUtils::InitTexture(renderer, _asset_path); // figure out a better way here
+    }
+    ~ImageButton() override {
+        if (_image_texture) {
+            SDL_DestroyTexture(_image_texture);
+            _image_texture = nullptr;
+        }
+    }
+    // rendering is the only unique effect of ImageButtons
+    void Render(SDL_Renderer* renderer) override {
+
+        SDL_SetRenderDrawColor(renderer, _buttonColor.r,  _buttonColor.g,  _buttonColor.b,  _buttonColor.a);
+        SDL_RenderFillRect(renderer, &_buttonRect);
+        RenderUtils::drawBorder(renderer, _buttonRect, _borderThickness, _borderColor);
+
+        int title_offset = 15;
+        setY(_buttonRect.y + 10); // text y position (redunant)
+        _text.display(renderer, _textX, _buttonRect.y + title_offset); 
+
+        // render image centered
+        if (_image_texture) {
+            int img_w, img_h;
+            SDL_QueryTexture(_image_texture, nullptr, nullptr, &img_w, &img_h);
+            int img_x = _buttonRect.x + (_buttonRect.w - img_w) / 2;
+            int img_y = _buttonRect.y + (_buttonRect.h - img_h) / 2 + title_offset; // adjust for title
+            SDL_Rect destRect = {img_x, img_y, img_w, img_h};
+            SDL_RenderCopy(renderer, _image_texture, nullptr, &destRect);
+        } else {
+            std::cerr << "Warning: ImageButton has no image texture to render." << std::endl;
+        }
+    }
 };

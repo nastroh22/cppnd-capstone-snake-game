@@ -1,10 +1,11 @@
-#include "game.h"
 #include <iostream>
-#include "SDL.h"
 #include <memory>
 #include <optional>
+
+#include "SDL.h"
+#include "game.h"
+#include "constants.h"
 #include "snake.h"
-#include <constants.h>
 
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)

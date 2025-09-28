@@ -1,5 +1,5 @@
 
-#include "mcomponents.h"
+#include "components.h"
 #include "SDL.h"
 
 // ***************************** Text Defs  *********************************** //
@@ -68,34 +68,19 @@ SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &messa
 
 // ************************************ Window Defs  ************************************************** //
 void Window::Render(SDL_Renderer* renderer){
-    // drawing
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
     RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
-
-    // render title
     _title.display(renderer, 
         _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
         _windowRect.y + 10
     );
-
-    //GOAL is to reduce code redunancy (clean separation between static window and dynamic cell)
-    // if (_shouldUpdate) {
-    //     _title.displayDynamic(renderer, _text_x, _text_y, _cellText); //title is the SDL_TTF interface
-    //     _shouldUpdate = false;
-    // } else {
-    //     _title.display(renderer, _text_x, _text_y);
-    // }
 }
 
-// NOTE: (TODO) can actually deprecate this custom render and just store this loagic at class level with _text_x, _text_y
-void Cell::Render(SDL_Renderer* renderer){
-    // draw color
-
+void DynamicWindow::Render(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
-
-    // draw border
+    // support dynamic text
     RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
     if (_shouldUpdate) {
         _title.displayDynamic(renderer, _text_x, _text_y, _cellText); //title is the SDL_TTF interface
@@ -105,12 +90,8 @@ void Cell::Render(SDL_Renderer* renderer){
     }
 }
 
-
-
 // **************************************** Table Defs ******************************************************* //
-void TableWindow::buildGrid(SDL_Renderer *renderer) {
-    // TODO: this is not yet general, builds in assumptions about scoreTable (i.e. data type, cols=2)
-    // possibly use overloading
+void Table::buildGrid(SDL_Renderer *renderer) {
 
     int const cellWidth = _tableRect.w / _cols;
     int const cellHeight = _tableRect.h / _rows; // TODO: make scrollable
@@ -123,8 +104,7 @@ void TableWindow::buildGrid(SDL_Renderer *renderer) {
     int prev_width = 0;
 
     for (int i = 0; i < _rows; ++i) {
-        
-        // std::cout << "tries to get griddata" << std::endl; //debug
+    
         std::vector<std::string> entry = gridData[i];
         gridSpec[i].reserve(_cols); // avoid multiple allocations
 
@@ -150,15 +130,11 @@ void TableWindow::buildGrid(SDL_Renderer *renderer) {
             );
             if (j % 2 == 0) {gridSpec[i][j].leftJustify();} // name column
             prev_width = width_adjust;
-            
         }
-    }
-    for (const auto& item : gridData) {
-        std::cout << "Score Data: " << item[0] << ", " << item[1] << std::endl; //debug
     }
 }
 
-void TableWindow::UpdateCells(int offset){
+void Table::UpdateCells(int offset){
     for (int i = 0; i < _rows; ++i) {
         for (int c = 0; c < _cols; ++c) {
             int r = i + offset;
@@ -166,3 +142,4 @@ void TableWindow::UpdateCells(int offset){
         }
     }
 }
+

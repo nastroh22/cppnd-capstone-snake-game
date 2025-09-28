@@ -7,7 +7,7 @@
 #include "controller.h"
 #include "renderer.h"
 #include "snake.h"
-#include "queue.h"
+#include "utils.h"
 #include "enemy/planner.h"
 #include "snake.h"
 #include "constants.h"
