@@ -20,7 +20,6 @@ enum class GameState { MENU, PLAYING, EXIT };
 
 int main() {
 
-  // stateF
   GameState state = GameState::MENU;
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
   MenuManager menu(renderer.get());

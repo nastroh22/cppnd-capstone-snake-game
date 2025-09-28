@@ -63,9 +63,15 @@ message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
 ```
 
 
-
 ## SDL:
 https://wiki.libsdl.org/SDL3/APIByCategory
+
+
+## Resources:
+- [cool free fonts](https://www.fontspace.com/category/arcade)
+- [sprite files](https://opengameart.org/)
+- [color palettes](https://colorswall.com/palette/3036)
+
 
 ## useful command:
 
@@ -151,12 +157,10 @@ Implementation of Food Class checks off following Rubric items:
     - [ ] *polymorphism*
     - [ ] *something else*
 
-
 ## Next Feature: Menu
 
 - Menu will display high scores (possible support scrolling)
     
-
 - Menu will have a "play" button
 
 - Menu will have an exit button

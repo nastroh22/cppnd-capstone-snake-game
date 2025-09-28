@@ -268,7 +268,6 @@ namespace ScoreIO{
     }
 }
 
-
 /* 
     MessageQueue Def 
 ******************************************************************************************
@@ -279,12 +278,8 @@ public:
     MessageQueue(std::shared_ptr<std::atomic<bool>> shutdown_flag) : _shutdown_flag(shutdown_flag) {};
     ~MessageQueue() = default;
 
-
-    // queue needs a send function
-    // to me feels more intuitive to actually call this "receive" since it is called by the consumer
+    // feels more intuitive to actually call this "receive" since it is called by the consumer
     std::optional<T> send() {
-
-        // review: needs a mutex
         std::unique_lock<std::mutex> lock(_mutex);
         _cond1.wait(lock, [this] { 
             return (!_messages.empty() || _shutdown_flag->load());}); // wait until not empty or shutdown is true
@@ -298,9 +293,8 @@ public:
         _cond2.notify_one();
         return msg;
     };
-    
-    void receive(T&& msg) {
 
+    void receive(T&& msg) {
         std::unique_lock<std::mutex> lock(_mutex);
         _cond2.wait(lock, [this] { 
             return (_messages.size() <= _maxSize || _shutdown_flag->load());});
@@ -316,12 +310,12 @@ public:
     void size(){
         std::lock_guard<std::mutex> lock(_mutex);
         std::cout << "Queue Size: " << _messages.size() << std::endl;
-    }
+    };
 
     void clear(){
         std::lock_guard<std::mutex> lock(_mutex);
         _messages.clear();
-    }
+    };
 
     void shutdown(){
         // std::lock_guard<std::mutex> lock(_mutex);
@@ -330,9 +324,6 @@ public:
         _cond1.notify_all();
         _cond2.notify_all();
     };
-
-    // queue needs a receive function
-
 
 private:
     std::mutex _mutex;
@@ -344,12 +335,7 @@ private:
 
 };
 
-
-
 #endif 
-
-
-
 
 
 /* 

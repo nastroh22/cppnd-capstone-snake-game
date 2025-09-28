@@ -102,10 +102,12 @@ MainMenu::MainMenu(SDL_Renderer* renderer)
         // Construct Window:
         _window = std::make_unique<Window>(
             renderer, 
-            "Welcome to Snake Game",
-            DEFAULT_WINDOW_COLOR, 
-            DEFAULT_WINBORDER_COLOR, 
-            WINDOW_POSITION);
+            MainConst.TITLE_TEXT,
+            MainConst.WINDOW_COLOR, 
+            MainConst.WINBORDER_COLOR, 
+            WINDOW_POSITION,
+            MainConst.TITLE_FONT_SIZE
+        );
         _disableSelectEffect = true; // Main switches instantly, so disable effect
 }
 
@@ -118,17 +120,24 @@ ScoreMenu::ScoreMenu(SDL_Renderer *renderer) : Menu(renderer)
     // NOTE: leaving additional params for now in case want to customize each window style
     _window = std::make_unique<Window>(
         renderer,
-        "High Scores!",
+        ScoreConst.TITLE_TEXT,
         ScoreConst.SCORE_WINDOW_COLOR, 
         ScoreConst.SCORE_WINDOW_BORDER_COLOR, 
-        WINDOW_POSITION
+        WINDOW_POSITION,
+        ScoreConst.TITLE_FONT_SIZE,
+        ScoreConst.TITLE_TEXT_COLOR,
+        ScoreConst.TITLE_FONT,
+        ScoreConst.TOP_TITLE_OFFSET
     );
+    std::cout << ScoreConst.TABLE_FONT_NAME << "<-- Table Font Name" << std::endl;
     _scoreTable = std::make_unique<Table>(
         SCORE_TABLE_RECT, 
         ScoreConst.SCORE_CELL_COLOR, 
         ScoreConst.SCORE_CELL_BORDER_COLOR, 
         ScoreConst.SCORE_TEXT_COLOR,
-        5, 2
+        ScoreConst.TABLE_FONT_NAME,
+        ScoreConst.NUM_ROWS,
+        ScoreConst.NUM_COLS
     );
     _scoreTable->buildGrid(renderer); // TODO: implement
     _disableSelectEffect = true; 
@@ -143,56 +152,50 @@ void ScoreMenu::Render() {
 // TODO: again, can make a lot of this shared functionality more polymorphic
 void CharacterMenu::generateGridDimensions() 
 {
-
-    std::cout << "Number of Characters: " << NUM_CHARACTERS << std::endl; //debug
-    int grid_rows = (NUM_CHARACTERS + NUM_CHARACTER_GRID_COLUMNS - 1) / NUM_CHARACTER_GRID_COLUMNS; // ceiling division
+    int grid_rows = (NUM_CHARACTERS + CharConst.NUM_COLUMNS - 1) / CharConst.NUM_COLUMNS; // ceiling division
      _characterRects.reserve(NUM_CHARACTERS);
-    // int const grid_cols = 3;
-    // int const grid_rows = (NUM_CHARACTERS + grid_cols - 1) / grid_cols; // ceiling division
-    int const cell_width = (WINDOW_POSITION.w - (NUM_CHARACTER_GRID_COLUMNS + 1) * CHARACTER_BUTTON_PADDING_X) / NUM_CHARACTER_GRID_COLUMNS;
-    // int const cell_height = (WINDOW_POSITION.h - (NUM_CHARACTER_GRID_COLUMNS + 1) * CHARACTER_BUTTON_PADDING_Y) / grid_rows;
-    int const cell_height = cell_width; // Default to square cells
-
+    int const cell_width = (WINDOW_POSITION.w - (CharConst.NUM_COLUMNS + 1) * CharConst.BUTTON_PADDING_X) / CharConst.NUM_COLUMNS;
+    int const cell_height = cell_width; // Default square cells
     for (int i = 0; i < NUM_CHARACTERS; ++i) {
-        int row = i / NUM_CHARACTER_GRID_COLUMNS;
-        int col = i % NUM_CHARACTER_GRID_COLUMNS;
+        int row = i / CharConst.NUM_COLUMNS;
+        int col = i % CharConst.NUM_COLUMNS;
         SDL_Rect rect = {
-            WINDOW_POSITION.x + CHARACTER_BUTTON_PADDING_X + col * (cell_width + CHARACTER_BUTTON_PADDING_X),
-            WINDOW_POSITION.y + CHARACTER_BUTTON_PADDING_Y + row * (cell_height + CHARACTER_BUTTON_PADDING_Y) + CHARACTER_TOP_OFFSET,
+            WINDOW_POSITION.x + CharConst.BUTTON_PADDING_X + col * (cell_width + CharConst.BUTTON_PADDING_X),
+            WINDOW_POSITION.y + CharConst.BUTTON_PADDING_Y + row * (cell_height + CharConst.BUTTON_PADDING_Y) + CharConst.TITLE_OFFSET,
             cell_width,
             cell_height
         };
         _characterRects.push_back(rect);
-        std::cout << "Character Rect " << i << ": (" << rect.x << ", " << rect.y << ", " << rect.w << ", " << rect.h << ")\n"; //debug
     }
 }
 
-CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer){ 
-
+CharacterMenu::CharacterMenu(SDL_Renderer *renderer) : Menu(renderer)
+{ 
     generateGridDimensions();
     assert(_characterRects.size() == NUM_CHARACTERS && "Something off with num characters grid gen"); // sanity check
-    // assert(CHARACTER_GRID_COLUMNS <= characterNames.size() && 
-    // "(CHARACTER_GRID_COLUMNS) Use at least many columns as characters for better formatting results")
-
     _buttons.reserve(NUM_CHARACTERS + 1);
     _buttons.emplace_back(
-        std::make_unique<BackButton>(
+        std::make_unique<CharBackButton>(
             _renderer, 
             CharConst.BACK_BUTTON_COLOR, 
-            CharConst.BACK_BUTTON_RECT)
+            CharConst.BACK_BUTTON_RECT
+        )
     ); // TODO (Maybe): Make this "Enter" or "Ok" 
     for ( int i = 0; i < NUM_CHARACTERS; ++i) {
         _buttons.emplace_back(
             std::make_unique<CharacterSelectButton>(_renderer, i, _characterRects[i])
         );
     }  
-    //TODO: reorg these constants
     _window = std::make_unique<Window>(
         renderer, 
-        "Select Your Character:", 
-        DEFAULT_WINDOW_COLOR, 
-        DEFAULT_WINBORDER_COLOR, 
-        WINDOW_POSITION
+        CharConst.TITLE_TEXT, 
+        CharConst.WINDOW_COLOR, 
+        CharConst.WINBORDER_COLOR, 
+        WINDOW_POSITION, //calculated
+        CharConst.TITLE_FONT_SIZE,
+        CharConst.TITLE_TEXT_COLOR,
+        CharConst.TITLE_FONT,
+        CharConst.TOP_TITLE_OFFSET
     );
 }
 
@@ -203,19 +206,25 @@ PlayerEntryMenu::PlayerEntryMenu(SDL_Renderer *renderer) : Menu(renderer)
     _buttons.emplace_back(std::make_unique<StartButton>(renderer)); // TODO: Make an "Enter" or "Ok" button
     _window = std::make_unique<Window>(
         renderer, 
-        "Enter Player Name: ", 
-        DEFAULT_WINDOW_COLOR, 
-        DEFAULT_WINBORDER_COLOR, 
-        WINDOW_POSITION
+        PlayerConst.TITLE_TEXT, 
+        PlayerConst.WINDOW_COLOR, 
+        PlayerConst.WINBORDER_COLOR, 
+        WINDOW_POSITION,
+        PlayerConst.TITLE_FONT_SIZE,
+        PlayerConst.TITLE_TEXT_COLOR,
+        PlayerConst.TITLE_FONT,
+        PlayerConst.TITLE_OFFSET
+
     );    
     _textEntry = std::make_unique<DynamicWindow>(
         renderer,
         _playerName, //Initial Text
-        PEConst.NAME_WINDOW_COLOR,
-        PEConst.NAME_WINDOW_BORDER_COLOR,
+        PlayerConst.NAME_WINDOW_COLOR,
+        PlayerConst.NAME_WINDOW_BORDER_COLOR,
         NAME_WINDOW_POSITION,  //calculated values
-        PEConst.NAME_TEXT_FONT_SIZE,
-        PEConst.NAME_WINDOW_TEXT_COLOR
+        PlayerConst.NAME_TEXT_FONT_SIZE,
+        PlayerConst.NAME_WINDOW_TEXT_COLOR,
+        PlayerConst.NAME_TEXT_FONT
     );
     _disableSelectEffect = true; 
 }
@@ -256,7 +265,7 @@ MenuState PlayerEntryMenu::getNameInput(const SDL_Event &event){
 void PlayerEntryMenu::toggleCursor()
 {
     Uint32 current_time = SDL_GetTicks();
-    if (current_time -  _lastToggleTime > PEConst.CURSOR_BLINK_INTERVAL_MS) {
+    if (current_time -  _lastToggleTime > PlayerConst.CURSOR_BLINK_INTERVAL_MS) {
         _cursor = (_cursor == '|') ? ' ' : '|';
         _lastToggleTime = current_time;
     }

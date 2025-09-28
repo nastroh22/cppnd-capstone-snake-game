@@ -15,8 +15,8 @@
 
 
 //Window Positions
-static int border_width = static_cast<int>(.15*kScreenWidth);
-static int border_height = static_cast<int>(.10*kScreenHeight);
+static int border_width = static_cast<int>(MENU_WIDTH_PROPORTION*kScreenWidth);
+static int border_height = static_cast<int>(MENU_HEIGHT_PROPORTION*kScreenHeight);
 const SDL_Rect WINDOW_POSITION = {
     border_width, 
     border_height,
@@ -26,7 +26,7 @@ const SDL_Rect WINDOW_POSITION = {
 
 const SDL_Rect NAME_WINDOW_POSITION = {
     static_cast<int>(1.2*border_width), 
-    static_cast<int>(2*border_height),
+    static_cast<int>(2*border_height) + PlayerConst.NAME_WINDOW_OFFSET,
     static_cast<int>(kScreenWidth - 2.4*border_width),
     80
 };
@@ -50,22 +50,22 @@ const SDL_Rect SCORE_TABLE_RECT = {
 };
 
 const int score_button_pad = 10;
-const int score_button_width = static_cast<int>(SCORE_TABLE_RECT.w/3) - score_button_pad; // pad for spacing
+const int score_button_width = static_cast<int>((SCORE_TABLE_RECT.w - 2*score_button_pad)/3); // pad for spacing
 
 // Positions are rel calcs, leave as is 
-const SDL_Rect SCORE_UP_BUTTON_RECT = {
+const SDL_Rect SCORE_BACK_BUTTON_RECT = {
         SCORE_TABLE_RECT.x, 
         SCORE_TABLE_RECT.y + SCORE_TABLE_RECT.h + 10, // below table
         score_button_width, 
         80
 };
-const SDL_Rect SCORE_DOWN_BUTTON_RECT = {
+const SDL_Rect SCORE_UP_BUTTON_RECT = {
     SCORE_TABLE_RECT.x + score_button_width + score_button_pad, 
     SCORE_TABLE_RECT.y + SCORE_TABLE_RECT.h + 10, 
     score_button_width, 
     80
 };
-const SDL_Rect SCORE_BACK_BUTTON_RECT = {
+const SDL_Rect SCORE_DOWN_BUTTON_RECT = {
     SCORE_TABLE_RECT.x + 2*(score_button_width + score_button_pad),
     SCORE_TABLE_RECT.y + SCORE_TABLE_RECT.h + 10,
     score_button_width,
@@ -112,7 +112,6 @@ class Text {
             }
             return *this;
         }
-
     private:
         SDL_Texture *_text_texture;
         mutable SDL_Rect _text_rect = {0,0,20,20}; // for positioning text, mutable so that display can be const
@@ -124,17 +123,23 @@ class Window {
     protected:
         SDL_Rect _windowRect; // for positioning button
         SDL_Color _windowColor; // for button color
-        SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // could make customizable
+        SDL_Color _borderColor; // could make customizable
         Text _title;
+        int _title_offset;
         int _text_x, _text_y; // for text positioning
         bool _shouldUpdate = false;
         // Text _content; // could be vector of texts for multiple lines
     
     public:
         Window(SDL_Renderer* renderer, const std::string& title, SDL_Color win_color, 
-                SDL_Color border_color, SDL_Rect rect, int text_font_size = 32, SDL_Color text_color = TITLE_COLOR) : 
-                    _windowRect(rect), _windowColor(win_color), _borderColor(border_color),
-                        _title(renderer, "../assets/fonts/comic_sans_ms.ttf", text_font_size, title, text_color) {};
+                    SDL_Color border_color, SDL_Rect rect, int font_size = DEFAULT_TITLE_FONT_SIZE, 
+                        SDL_Color text_color = TITLE_COLOR, std::string font_name = DEFAULT_TITLE_FONT, int title_offset = DEFAULT_TITLE_OFFSET) :
+                            _windowRect(rect),  
+                            _windowColor(win_color),  
+                            _borderColor(border_color), 
+                            _title_offset(title_offset),
+                            _title(renderer, Assets::fontMap.at(font_name), font_size, title, text_color) {};
+        
         ~Window() = default; // will call _text destructor by default
         
         DISABLE_COPY_ENABLE_MOVE(Window);
@@ -144,8 +149,8 @@ class Window {
         void rightJustify() {_text_x = _windowRect.x + _windowRect.w - _title.getWidth() - 15 ;}
         void setX(int x) {_text_x = x;}
         void setY(int y) {_text_y = y;}
-        int getX() const { return _text_x; }
-        int getY() const { return _text_y; }
+        int getX() const {return _text_x;}
+        int getY() const {return _text_y;}
         void setTextPos(int x, int y) { _text_x = x; _text_y = y; }
         void centerText(){
             _text_x = _windowRect.x + (_windowRect.w - _title.getWidth()) / 2;
@@ -155,7 +160,6 @@ class Window {
             _text_x = _windowRect.x + (_windowRect.w - _title.getWidth()) / 2;
             _text_y = _windowRect.y + 10; // pad from top
         }
-
         void virtual Render(SDL_Renderer* renderer);
 };
 
@@ -165,20 +169,19 @@ class DynamicWindow : public Window {
 
     public:
         DynamicWindow(SDL_Renderer* renderer, const std::string& text, SDL_Color cell_color, 
-                SDL_Color border_color, SDL_Rect rect, int text_font_size = 24, SDL_Color text_color = ScoreConst.SCORE_TEXT_COLOR) :
-                    Window(renderer, text, cell_color, border_color, rect, text_font_size, text_color), _cellText(text) 
+                        SDL_Color border_color, SDL_Rect rect, int text_font_size = DEFAULT_BUTTON_FONT_SIZE, 
+                            SDL_Color text_color = DEFAULT_TEXT_COLOR, std::string font_name = DEFAULT_BUTTON_FONT) :
+                                Window(renderer, text, cell_color, border_color, rect, text_font_size, text_color, font_name), 
+                                _cellText(text) 
                     {
                         centerText();
                         std::cout << "Cell created: " << text << " " <<  _text_y << _text_x <<std::endl;
-
                     };
         ~DynamicWindow() = default; // will call _text destructor by default
         DISABLE_COPY_ENABLE_MOVE(DynamicWindow);
         virtual void Render(SDL_Renderer* renderer) override;
-        void UpdateText(const std::string &new_text) {
-            _cellText = new_text; _shouldUpdate = true;
-        }
-        // Possible TODO: either reduce Text size (if goes out of bounds or replace with ... and return option for player to view it)
+        void UpdateText(const std::string &new_text) {_cellText = new_text; _shouldUpdate = true;}
+        // ?? TODO: either reduce Text size (if goes out of bounds or replace with ... and return option for player to view it)
         // or enforce a limit on text length when updating
 };
 
@@ -198,13 +201,21 @@ class Table  {
     SDL_Color const _cellBorderColor; 
     SDL_Color const _textColor;
     int const _textFontSize = 24; 
+    std::string const _textFontName;
     std::vector<std::vector<DynamicWindow>> gridSpec;
     std::vector<std::vector<std::string>> gridData;
     int _offset = 0; //for scrolling
 
     public:
-        Table(SDL_Rect tableDims, SDL_Color cellColor = WHITE, SDL_Color cellBorderColor = BLACK, SDL_Color cellTextColor = WHITE, int rows=5, int cols=2) :
-            _tableRect(tableDims), _cellColor(cellColor), _cellBorderColor(cellBorderColor), _textColor(cellTextColor), _rows(rows), _cols(cols) {};
+        Table(SDL_Rect tableDims, SDL_Color cellColor = WHITE, SDL_Color cellBorderColor = BLACK, 
+                SDL_Color cellTextColor = WHITE, std::string const cellTextFont = DEFAULT_TABLE_FONT, int rows=5, int cols=2) : 
+                _tableRect(tableDims), 
+                _cellColor(cellColor), 
+                _cellBorderColor(cellBorderColor),
+                _textColor(cellTextColor), 
+                _textFontName(cellTextFont),
+                _rows(rows), 
+                _cols(cols) {};
         ~Table() = default;
         // DISABLE_COPY_ENABLE_MOVE(Table);
         void buildGrid(SDL_Renderer *renderer);
@@ -256,22 +267,36 @@ protected:
     const SDL_Rect _buttonRect; // for positioning button
     const SDL_Color _buttonColor; // for button color
     const MenuState _return_state = MenuState::NONE; // default state
-    SDL_Color _borderColor = DEFAULT_BORDER_COLOR; // non-const to enable hover effect
+    SDL_Color _borderColor; // non-const to enable hover effect
     std::string label = "Button";
     int _borderThickness = 2; // could make customizable
     bool _freeze_border = false; // to keep border on selected button
     int _textX, _textY; // for text positioning
+    SDL_Color _hover_color;
 
 
 // I think the protected constructor pattern works to make sure no abstract button can be created // TODO re-use for "Menu"
-    Button(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text)
-        : _return_state(label), _buttonColor(color), _buttonRect(rect), 
-        _text(renderer, "../assets/fonts/comic_sans_ms.ttf", 24, text, DEFAULT_TEXT_COLOR) 
-        {
-           // default centered text
+    Button(SDL_Renderer* renderer, 
+            MenuState label, 
+            SDL_Color color, 
+            SDL_Rect rect,
+            const std::string& text, 
+            std::string font_name = DEFAULT_BUTTON_FONT, 
+            int font_size = DEFAULT_BUTTON_FONT_SIZE, 
+            SDL_Color text_color = DEFAULT_TEXT_COLOR, 
+            SDL_Color border_color = DEFAULT_BORDER_COLOR, 
+            SDL_Color hover_color = DEFAULT_HOVER_COLOR) 
+            :  
+                _return_state(label), 
+                _buttonColor(color), 
+                _buttonRect(rect),
+                _borderColor(border_color), 
+                _hover_color(hover_color), 
+                _text(renderer, Assets::fontMap.at(font_name), font_size, text, text_color) 
+        { 
            _textX =  _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2;
            _textY = _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2;
-        }
+        } // default centered text
 
 public:
     virtual ~Button() = default; // will call _text destructor by default
@@ -293,12 +318,12 @@ public:
         } 
         if (SDL_PointInRect(&mousePoint, &_buttonRect)) {
             // Change border color on hover
-            _borderColor = HOVER_BORDER_COLOR;
-            _borderThickness = 4; //thicker border
+            _borderColor = _hover_color;
+            _borderThickness = DEFAULT_HOVER_THICKNESS; //thicker border
         } 
         else {
             // Revert to default border color
-            _borderColor = DEFAULT_BORDER_COLOR;
+            _borderColor = DEFAULT_BORDER_COLOR; // TODO: make this configurable as well
             _borderThickness = 2;
         }
     }
@@ -307,7 +332,7 @@ public:
         _freeze_border = true; // keep border on selected button
     }
     void unselect() {
-        _borderColor = HOVER_BORDER_COLOR;
+        _borderColor = DEFAULT_HOVER_COLOR;
         _freeze_border = false;
     }
 

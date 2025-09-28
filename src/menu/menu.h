@@ -13,11 +13,10 @@
 #include "./constants.h"
 #include "./utils.h" 
 
-
 /* NOTE: defs start with custom buttons since these are closely tied with their respective menus
             the rest of the base elements can be found in "components.h"
 */
-
+// FUTURE TODO: create generic "button spec" then emplace back all buttons from a vector of specs (to reduce boilerplate)
 // ********************** Custom Buttons ************************************************************ 
 class PlayButton : public Button {
 public: // TODo: Rename the Top Menu Button to "Start"
@@ -25,12 +24,17 @@ public: // TODo: Rename the Top Menu Button to "Start"
         : Button(
             renderer, 
             MenuState::PLAYER_NAME, 
-            MMConst.PLAY_BUTTON_COLOR, 
-            MMConst.PLAY_BUTTON_RECT, "Play!") {label = "Play";}
+            MainConst.PLAY_BUTTON_COLOR, 
+            MainConst.PLAY_BUTTON_RECT,
+            MainConst.PLAY_BUTTON_LABEL,
+            MainConst.BUTTON_FONT,
+            MainConst.BUTTON_FONT_SIZE,
+            MainConst.BUTTON_TEXT_COLOR,
+            MainConst.BUTTON_BORDER_COLOR,
+            MainConst.HOVER_COLOR) {}
     
     // DISABLE_COPY_ENABLE_MOVE(PlayButton);
     ~PlayButton() = default;
-    
 };
 
 class ScoreButton : public Button {
@@ -39,18 +43,16 @@ public:
         : Button(
             renderer, 
             MenuState::SCORE_MENU, 
-            MMConst.SCORE_BUTTON_COLOR,
-            MMConst.SCORE_BUTTON_RECT, "High Scores") {label = "Score";}
+            MainConst.SCORE_BUTTON_COLOR,
+            MainConst.SCORE_BUTTON_RECT, 
+            MainConst.SCORE_BUTTON_LABEL,
+            MainConst.BUTTON_FONT,
+            MainConst.BUTTON_FONT_SIZE,
+            MainConst.BUTTON_TEXT_COLOR,
+            MainConst.BUTTON_BORDER_COLOR,
+            MainConst.HOVER_COLOR
+            ) {}
     ~ScoreButton() = default;
-};
-
-class QuitButton : public Button {
-public:
-    QuitButton(SDL_Renderer* renderer)
-        : Button(renderer, MenuState::QUIT, 
-        MMConst.QUIT_BUTTON_COLOR, 
-        MMConst.QUIT_BUTTON_RECT, "Quit") {}
-    ~QuitButton() = default;
 };
 
 class CharacterButton : public Button {
@@ -58,21 +60,43 @@ public:
     CharacterButton(SDL_Renderer* renderer)
         : Button(renderer, 
             MenuState::CHARACTER_MENU, 
-            MMConst.CHAR_BUTTON_COLOR, 
-            MMConst.CHAR_BUTTON_RECT, 
-            "Characters") {}
-    // DISABLE_COPY_ENABLE_MOVE(CharacterButton);
+            MainConst.CHAR_BUTTON_COLOR, 
+            MainConst.CHAR_BUTTON_RECT,
+            MainConst.CHAR_BUTTON_LABEL,
+            MainConst.BUTTON_FONT,
+            MainConst.BUTTON_FONT_SIZE,
+            MainConst.BUTTON_TEXT_COLOR,
+            MainConst.BUTTON_BORDER_COLOR,
+            MainConst.HOVER_COLOR) {}
+
     ~CharacterButton() = default;
+};
+
+class QuitButton : public Button {
+public:
+    QuitButton(SDL_Renderer* renderer)
+        : Button(renderer, MenuState::QUIT, 
+        MainConst.QUIT_BUTTON_COLOR, 
+        MainConst.QUIT_BUTTON_RECT,
+        MainConst.QUIT_BUTTON_LABEL,
+        MainConst.BUTTON_FONT,
+        MainConst.BUTTON_FONT_SIZE,
+        MainConst.BUTTON_TEXT_COLOR,
+        MainConst.BUTTON_BORDER_COLOR,
+        MainConst.HOVER_COLOR) {}
+    ~QuitButton() = default;
 };
 
 class BackButton : public Button {
 public:
     BackButton(
         SDL_Renderer* renderer, 
-        SDL_Color color = PEConst.BACK_BUTTON_COLOR, 
-        SDL_Rect rect = PEConst.BACK_BUTTON_RECT
+        SDL_Color color = PlayerConst.BACK_BUTTON_COLOR, 
+        SDL_Rect rect = PlayerConst.BACK_BUTTON_RECT
     ) :
-        Button(renderer, MenuState::BACK, color, rect, "Back") {}
+        Button(renderer, 
+            MenuState::BACK, color, rect, 
+            "<< Back", "public_pixel", 28, WHITE, WHITE, YELLOW) {}
     ~BackButton() = default;
 };
 
@@ -82,8 +106,10 @@ public:
         : Button(
             renderer, 
             MenuState::PLAY, 
-            PEConst.START_BUTTON_COLOR, 
-            PEConst.START_BUTTON_RECT, "Start") {label = "Play";}
+            PlayerConst.START_BUTTON_COLOR, 
+            PlayerConst.START_BUTTON_RECT, 
+            PlayerConst.START_BUTTON_LABEL,
+            "public_pixel", 28, WHITE, WHITE, YELLOW) {}
     ~StartButton() = default;
 };
 
@@ -93,7 +119,8 @@ public:
         Button(renderer, 
             MenuState::BACK, 
             ScoreConst.SCORE_UP_BUTTON_COLOR, 
-            SCORE_UP_BUTTON_RECT, "Up" ) {label = "Up";}
+            SCORE_UP_BUTTON_RECT, 
+            "▲", "dejavu_sans", 36, WHITE, WHITE, ScoreConst.HOVER_COLOR ) {} // "▲"
     
     ~ScoreUpButton() = default;
     MenuState onClick(Menu* container) const override; // custom behavior
@@ -105,7 +132,8 @@ public:
         : Button(renderer, 
             MenuState::BACK, 
             ScoreConst.SCORE_DOWN_BUTTON_COLOR,
-            SCORE_DOWN_BUTTON_RECT, "Down") {label = "Down";}
+            SCORE_DOWN_BUTTON_RECT, 
+            "▼", "dejavu_sans", 36, WHITE, WHITE, ScoreConst.HOVER_COLOR  ) {}  // "▼"
    
     ~ScoreDownButton() = default;
     MenuState onClick(Menu* container) const override;
@@ -116,8 +144,9 @@ public:
     ScoreBackButton(SDL_Renderer* renderer)
         : Button(renderer, 
             MenuState::BACK, 
-            BACK_BUTTON_COLOR, 
-            SCORE_BACK_BUTTON_RECT, "Back") {}
+            ScoreConst.SCORE_BACK_BUTTON_COLOR, 
+            SCORE_BACK_BUTTON_RECT, 
+            "◄◄", "dejavu_sans", 36, WHITE, WHITE, ScoreConst.HOVER_COLOR ) {} //◄
 
     ~ScoreBackButton() = default;
     MenuState onClick(Menu* container) const override;
@@ -134,10 +163,26 @@ class CharacterSelectButton : public ImageButton {
         {
             label = CHARACTER_NAMES[char_index];
         }
-        //CHARACTER_BUTTON_BORDER_COLOR -> NOTE/TODO: This is a dummy since hard-coded at button level currently
     ~CharacterSelectButton() override {};
     MenuState onClick(Menu* container) const override;
+};
 
+class CharBackButton : public Button {
+public:
+    CharBackButton(
+        SDL_Renderer* renderer, 
+        SDL_Color color = PlayerConst.BACK_BUTTON_COLOR, 
+        SDL_Rect rect = PlayerConst.BACK_BUTTON_RECT
+    ) :
+        Button(renderer, 
+            MenuState::BACK, color, rect, 
+            "<< Main", 
+            "public_pixel", 
+            28, 
+            WHITE, 
+            CharConst.BUTTON_BORDER_COLOR, 
+            CharConst.HOVER_COLOR) {}
+    ~CharBackButton() = default;
 };
 
 
@@ -168,25 +213,6 @@ public:
             button->unselect();
         }
     }
-
-    //TODO: could be protected?
-    // void toggleSelectedButton(Button *newButton) {
-    //     if (_disableSelectEffect) { return; }
-    //     if (_selectedButton){ //nullptr guard
-    //         _selectedButton->unselect();
-    //     }
-    //     if (_selectedButton == newButton) {
-    //         _selectedButton->unselect();
-    //         _selectedButton = nullptr;
-    //     }
-    //     else{
-    //         std::cout << "Should Set the New Button: " << newButton << std::endl;
-    //         _selectedButton = newButton;
-    //         _selectedButton->select(); 
-    //         std::cout << "Selected?: " << _selectedButton << std::endl;
-    //     }
-    // }
-
 
 protected:
     SDL_Texture* _background = nullptr; // Could use a smart pointer with custom deleter
@@ -241,7 +267,7 @@ class PlayerEntryMenu : public Menu {
     // MenuState queryButtons(const SDL_Event& e) override { return getNameInput(e);};
 
     private:
-    std::string _playerName = PEConst.DEFAULT_PLAYER_NAME; 
+    std::string _playerName = PlayerConst.DEFAULT_PLAYER_NAME; 
     std::unique_ptr<DynamicWindow> _textEntry; 
     Uint32 _lastToggleTime = 0;
     bool cursor_visible = true;
@@ -272,18 +298,12 @@ class CharacterMenu : public Menu {
     int _num_characters = 0;
     std::vector<SDL_Rect> _characterRects;
 
-    // NOTE: simple first approach, just create two image buttons
-    // future flexibility, reuse the TableWindow class to accept multiple data types
-
     public:
     CharacterMenu(SDL_Renderer* renderer);
     ~CharacterMenu(){
         std::cout << "Character Menu Destructor Called" << std::endl;
     }; // responsible for destroying image textures
-    // DISABLE_COPY_ENABLE_MOVE(CharacterMenu);
 
-
-    // void Render() override; // or maybe override not needed
     void setCharacterSelection(const std::string& character) override { _selectedCharacter = character; }
     std::string getCharacterSelection() const override { return _selectedCharacter; }
 
@@ -308,14 +328,12 @@ class MenuManager {
     Menu* _currentMenu = nullptr;
     Menu* _prevMenu = nullptr; 
     MenuState _state = MenuState::MAIN_MENU;
-    std::string _playerName = "Player1"; // default name
-    std::string _selectedCharacter = CHARACTER_NAMES[0]; // default character
-
-    //TODO(?) store _prev
+    std::string _playerName = PlayerConst.DEFAULT_PLAYER_NAME; 
+    std::string _selectedCharacter = CHARACTER_NAMES[0]; //default to Sammy
 
     public:
 
-    explicit MenuManager(SDL_Renderer* renderer) : // note to self: using "explicit"
+    explicit MenuManager(SDL_Renderer* renderer) : //note to self: using "explicit"?
         _renderer(renderer),
         mainMenu(std::make_unique<MainMenu>(renderer)),
         scoreMenu(std::make_unique<ScoreMenu>(renderer)),
@@ -323,8 +341,8 @@ class MenuManager {
         characterMenu(std::make_unique<CharacterMenu>(renderer))
     {
         _currentMenu = mainMenu.get(); // entry
-        std::cout << "Main Pointer : " << mainMenu.get() << std::endl; //debug
-        std::cout << "Score Pointer : " << scoreMenu.get() << std::endl; //debug
+        // std::cout << "Main Pointer : " << mainMenu.get() << std::endl; //debug
+        // std::cout << "Score Pointer : " << scoreMenu.get() << std::endl; //debug
 
     };
     ~MenuManager() 
@@ -349,7 +367,6 @@ class MenuManager {
                 std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::PLAYER_NAME:
-                // _currentMenu = playerNameMenu.get(); // TODO
                 _currentMenu = nullptr;
                 _currentMenu = nameInput.get();
                 break;
@@ -365,7 +382,7 @@ class MenuManager {
                 std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::QUIT:
-                _currentMenu = nullptr; // or some exit logic
+                _currentMenu = nullptr;
                 break;
             default:
                 _currentMenu = nullptr;
@@ -379,14 +396,13 @@ class MenuManager {
         }
     }
  
-    // maybe generalize the menus to have a general get data/input function
     MenuState handleEvent(const SDL_Event& e) {
         
         if (_currentMenu == nameInput.get()){
             nameInput->getNameInput(e); 
             if (nameInput->getPlayerName().size() >= 2) {
                 _playerName = nameInput->getPlayerName();
-            } // TODO: playerName constraints ?
+            } // TODO: playerName constraints?
         }
         if (_currentMenu == characterMenu.get()) {
             _selectedCharacter =  _currentMenu->getCharacterSelection();
@@ -409,11 +425,11 @@ class MenuManager {
                 }
                 _state = handleEvent(e);
                 if (_state == MenuState::QUIT) {
-                    return false; // may be redundant ? 
+                    return false; // redundant ? 
                 } 
-                switchMenu(); // wonder how this will work if PollEvent is still non-empty
+                switchMenu();
             }
-            SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255); // black background
+            SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255); //background
             SDL_RenderClear(_renderer);
             SDL_SetRenderDrawColor(_renderer, 
                             BACKGROUND_COLOR.r, 

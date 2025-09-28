@@ -18,7 +18,6 @@ void Snake::Update(SDL_Point const &ai_location) {
   if (current_cell.x != prev_cell.x || current_cell.y != prev_cell.y) {
     UpdateBody(current_cell, prev_cell, ai_location);
   }
-
 }
 
 void Snake::UpdateHead() {

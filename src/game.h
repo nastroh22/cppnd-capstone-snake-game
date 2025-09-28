@@ -13,8 +13,8 @@
 #include "constants.h"
 
 class Game {
- public:
-  Game(std::size_t grid_width, std::size_t grid_height); // optionally init the Game Object with a copy of queues
+ public: // optionally init the Game Object with a copy of queues (TODO?)
+  Game(std::size_t grid_width, std::size_t grid_height); 
   void Run(Controller const &controller, Renderer &renderer,
            std::size_t target_frame_duration, 
            MessageQueue<SDL_Point> *pubq,
@@ -23,27 +23,21 @@ class Game {
  
   int GetScore() const;
   int GetSize() const;
-  // SDL_Point GetAiMove() {};
   std::string GetPlayerName();
   void InitCharacter(Renderer &renderer, CharacterEnum character) { 
-      // this->character = character; 
       snake.InitTextures(renderer.get(),character); 
-  }; // init snake textures
+  }; 
 
  private:
   Snake snake;
-  // Food *food;  // DEPRECATE
-  // std::vector<std::unique_ptr<Food>> foods; //DEPRECATE
-
-
   SDL_Point ai_location; // store last location from AI (TODO -- check if needed?)
-
   RenderUtils::Item itemStruct {"dot",0,0};
 
-  //DEPRECATE THESE
-  // RenderUtils::Item snakeStruct {"snake",0,0}; //Snake has more complexity, so keep class but dynamically update it's render file
-  // RenderUtils::Item hawkStruct {"hawk",0,0};
+  int score{0};
+  void PlaceItem();
+  void Update(SDL_Point const &ai_location);
 
+  //rng's
   std::random_device dev;
   std::mt19937 engine;
   std::uniform_int_distribution<int> random_w;
@@ -51,11 +45,6 @@ class Game {
   std::uniform_real_distribution<float> random_food;
   std::discrete_distribution<> item_choice;
   std::string _render_item; // current item to render
-
-  int score{0};
-
-  void PlaceItem();
-  void Update(SDL_Point const &ai_location);
 };
 
 #endif

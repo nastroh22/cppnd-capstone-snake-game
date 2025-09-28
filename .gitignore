@@ -5,3 +5,5 @@ CODEOWNERS
 src/ai/model.h
 src/ai/model.cpp
 local/*
+assets/fonts/local/
+*.DS_Store

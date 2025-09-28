@@ -12,15 +12,11 @@
 #include "./constants.h"
 
 
-// NOTE: Renderer is using a subgrid, which could make A* more feasible actually (future version)
-// kGridWidth, kGridHeight
-
-
-// TODO: probably move "Hawk" here
-
-// Possible extension with the "Fox" character as well 
-
-// TODO: and another extension would be multiple hawks or 'swarms' (which glide across screen in some random pattern, then exit)
+/* NOTES: 
+    * Renderer is using a subgrid, which could make A* more feasible actually (future version) --> kGridWidth, kGridHeight
+    ?TODO: Possible extension with the "Fox" character as well 
+    ?TODO: and another extension would be multiple hawks or 'swarms' (which glide across screen in some random pattern, then exit)
+*/
 
 
 // NOTE: maybe store the hawk texture here instead

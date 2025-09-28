@@ -37,7 +37,6 @@ std::pair<double, double> inline NormalizeSpeed(int dx, int dy, float speed = 2.
     return {vx, vy};
 }
 
-
 SDL_Point Planner::FollowLine() {
     int d_x = (goal.x - x);
     int d_y = (goal.y - y);

@@ -1,8 +1,7 @@
-
 #include "components.h"
 #include "SDL.h"
 
-// ***************************** Text Defs  *********************************** //
+// ****************************************** Text Defs  ************************************************ //
 Text::Text(
     SDL_Renderer *renderer,
     const std::string &font_path,
@@ -48,7 +47,7 @@ void Text::loadFont(SDL_Renderer *renderer, const std::string &font_path, int fo
 
 SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &message_text, SDL_Color& color)
 {
-    auto text_surface = TTF_RenderText_Solid(_font, message_text.c_str(), color);
+    auto text_surface = TTF_RenderUTF8_Solid(_font, message_text.c_str(), color); //TTF_RenderText_Solid
 
     if (!text_surface) {
         std::cerr << "Failed to create text surface: " << TTF_GetError() << std::endl;
@@ -66,14 +65,14 @@ SDL_Texture *Text::makeTexture(SDL_Renderer *renderer,  const std::string &messa
     return text_texture;
 }
 
-// ************************************ Window Defs  ************************************************** //
+// ************************************  Window Defs ***************************************************************** //
 void Window::Render(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
     RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
     _title.display(renderer, 
         _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
-        _windowRect.y + 10
+        _windowRect.y + _title_offset
     );
 }
 
@@ -90,7 +89,7 @@ void DynamicWindow::Render(SDL_Renderer* renderer){
     }
 }
 
-// **************************************** Table Defs ******************************************************* //
+// **************************************** Table Defs ************************************************************** //
 void Table::buildGrid(SDL_Renderer *renderer) {
 
     int const cellWidth = _tableRect.w / _cols;
@@ -100,7 +99,9 @@ void Table::buildGrid(SDL_Renderer *renderer) {
     gridSpec.clear(); // should only be built once, but in case
     gridSpec.resize(_rows);
     std::cout << "Inside buildGrid, gridSpec size: " << gridSpec.size() << gridData.size() << std::endl; //debug
-    int width_adjust = 0;
+    std::cout << _textFontName << std::endl; //debug
+    // int width_adjust = cellWidth;
+    int width_adjust = 0; //tight layout
     int prev_width = 0;
 
     for (int i = 0; i < _rows; ++i) {
@@ -110,8 +111,7 @@ void Table::buildGrid(SDL_Renderer *renderer) {
 
         for (int j = 0; j < _cols; ++j) {
             
-            width_adjust = (j % 2 == 0) ? cellWidth+90 : cellWidth-90;
-            std::cout << "Wudth adjusted : " << width_adjust << std::endl; //debug
+            width_adjust = (j % 2 == 0) ? cellWidth+70 : cellWidth-70; // small hack for 2-column
 
             SDL_Rect cellRect = { //tight layout
                 _tableRect.x + j * prev_width,
@@ -126,7 +126,8 @@ void Table::buildGrid(SDL_Renderer *renderer) {
                 _cellBorderColor, 
                 cellRect, 
                 _textFontSize, 
-                _textColor
+                _textColor,
+                _textFontName
             );
             if (j % 2 == 0) {gridSpec[i][j].leftJustify();} // name column
             prev_width = width_adjust;
