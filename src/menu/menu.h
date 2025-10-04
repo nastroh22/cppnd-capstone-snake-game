@@ -158,8 +158,8 @@ class CharacterSelectButton : public ImageButton {
     public:
     CharacterSelectButton(SDL_Renderer* renderer, int char_index, SDL_Rect rect)
         : ImageButton(renderer, MenuState::NONE, CHARACTER_COLORS[char_index], rect, 
-            CHARACTER_NAMES[char_index], characterFileMap.at(static_cast<CharacterEnum>(char_index))[0]), 
-                _characterName(CHARACTER_NAMES[char_index])
+            CHARACTER_NAMES[char_index], characterFileMap.at(static_cast<CharacterEnum>(char_index))[0], 
+                "comic_sans", 28, TITLE_COLOR, CharConst.BUTTON_BORDER_COLOR, CharConst.HOVER_COLOR),  _characterName(CHARACTER_NAMES[char_index])
         {
             label = CHARACTER_NAMES[char_index];
         }
@@ -206,6 +206,7 @@ public:
 
     // Optional hook when menu becomes active
     virtual void enter() {}
+    virtual void setTheme(int x) {};
     virtual void toggleOffset(PageToggle direction){}; // just need this in parent so ScoreMenu can override
 
     virtual void resetButtons(){
@@ -235,10 +236,8 @@ protected:
             _selectedButton = nullptr;
         }
         else{
-            std::cout << "Should Set the New Button: " << newButton << std::endl;
             _selectedButton = newButton;
             _selectedButton->select(); 
-            std::cout << "Selected?: " << _selectedButton << std::endl;
         }
     }
 };
@@ -251,6 +250,81 @@ class MainMenu : public Menu {
     ~MainMenu(){
          std::cout << "Main Menu Destructor Called" << std::endl;
     };
+
+    protected:
+    int _theme = 0; // 0 for sammy, 1 for sandy
+    SDL_Renderer* _renderer;  // going to store a copy here only so can do the setTheme effect
+    
+    // For Fun, multiple themes
+    void setTheme(int theme) override {
+        if (_theme == theme) {
+            return;
+        }
+        else{ 
+            _theme = theme;
+        }
+        if (theme == 0) {
+            _window->setBorderColor(MainConst.SAMMY_BORDER_COLOR);
+            _window->setWindowColor(MainConst.SAMMY_WINDOW_COLOR);
+            _window->remakeTitle(
+                _renderer, 
+                MainConst.SAMMY_TITLE_COLOR,
+                MainConst.TITLE_FONT_SIZE,
+                MainConst.TITLE_FONT,
+                MainConst.TITLE_TEXT
+            );
+        
+            for (auto &button : _buttons){
+
+                button->setBorderColor(MainConst.BUTTON_BORDER_COLOR);
+                button->setHoverColor(MainConst.HOVER_COLOR);
+                if (button->label == MainConst.PLAY_BUTTON_LABEL) {
+                    button->setColor(MainConst.PLAY_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.CHAR_BUTTON_LABEL) {
+                    button->setColor(MainConst.CHAR_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.SCORE_BUTTON_LABEL) {
+                    button->setColor(MainConst.SCORE_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.QUIT_BUTTON_LABEL) {
+                    button->setColor(MainConst.QUIT_BUTTON_COLOR);
+                }
+            }
+        }
+        else {
+            _window->setBorderColor(MainConst.SANDY_BORDER_COLOR);
+            _window->setWindowColor(MainConst.SANDY_WINDOW_COLOR);
+            _window->remakeTitle(
+                _renderer, 
+                MainConst.SANDY_TITLE_COLOR,
+                MainConst.TITLE_FONT_SIZE,
+                MainConst.TITLE_FONT,
+                MainConst.TITLE_TEXT
+            );
+
+            // Update Button Colors
+            for (auto &button : _buttons){
+                button->setBorderColor(MainConst.SANDY_BUTTON_BORDER_COLOR);
+                button->setHoverColor(MainConst.SANDY_BUTTON_HOVER_COLOR);
+                std::cout << "Update Button!" << button->label << std::endl;
+                if (button->label == MainConst.PLAY_BUTTON_LABEL) {
+                    button->setColor(MainConst.SANDY_PLAY_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.CHAR_BUTTON_LABEL) {
+                    button->setColor(MainConst.SANDY_CHAR_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.SCORE_BUTTON_LABEL) {
+                    button->setColor(MainConst.SANDY_SCORE_BUTTON_COLOR);
+                }
+                else if (button->label == MainConst.QUIT_BUTTON_LABEL) {
+                    button->setColor(MainConst.SANDY_QUIT_BUTTON_COLOR);
+                }
+            }
+
+
+        }
+    }
 };
 
 class PlayerEntryMenu : public Menu {
@@ -291,7 +365,6 @@ class ScoreMenu : public Menu {
     std::unique_ptr<Table> _scoreTable; 
 };
 
-// TODO
 class CharacterMenu : public Menu {
 
     std::string _selectedCharacter = CHARACTER_NAMES[0]; // default
@@ -313,6 +386,27 @@ class CharacterMenu : public Menu {
 
 };
 
+// class GameOver : public Menu {
+
+//     std::string _selectedCharacter = CHARACTER_NAMES[0]; // default
+//     int _num_characters = 0;
+//     std::vector<SDL_Rect> _characterRects;
+
+//     public:
+//     GameOver(SDL_Renderer* renderer){};
+//     ~GameOver(){
+//         std::cout << "Game Over Menu Destructor Called" << std::endl;
+//     }; // responsible for destroying image textures
+
+//     void setCharacterSelection(const std::string& character) override { _selectedCharacter = character; }
+//     std::string getCharacterSelection() const override { return _selectedCharacter; }
+
+
+//     private:
+//     void generateGridDimensions();
+
+// };
+
 
 // *************** State Management and Navigation Logic  ************************************************************
 class MenuManager {
@@ -330,6 +424,8 @@ class MenuManager {
     MenuState _state = MenuState::MAIN_MENU;
     std::string _playerName = PlayerConst.DEFAULT_PLAYER_NAME; 
     std::string _selectedCharacter = CHARACTER_NAMES[0]; //default to Sammy
+
+    bool main_theme_sammy = true; // 0 for sammy theme, 1 for cindy theme
 
     public:
 
@@ -360,18 +456,18 @@ class MenuManager {
         switch (_state){
             case MenuState::MAIN_MENU:
                 _currentMenu = mainMenu.get();
-                std::cout << "Switch: "<< _currentMenu << std::endl;
+                // std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::SCORE_MENU:
                 _currentMenu = scoreMenu.get();
-                std::cout << "Switch: "<< _currentMenu << std::endl;
+                // std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::PLAYER_NAME:
                 _currentMenu = nullptr;
                 _currentMenu = nameInput.get();
                 break;
             case MenuState::PLAY:
-                std::cout << "Switch Play: "<< _currentMenu << std::endl;
+                // std::cout << "Switch Play: "<< _currentMenu << std::endl;
                 break;
             case MenuState::CHARACTER_MENU:
                 _currentMenu = characterMenu.get();
@@ -379,7 +475,7 @@ class MenuManager {
             case MenuState::BACK:
                 _currentMenu->resetButtons();
                 _currentMenu = mainMenu.get();
-                std::cout << "Switch: "<< _currentMenu << std::endl;
+                // std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::QUIT:
                 _currentMenu = nullptr;
@@ -391,10 +487,36 @@ class MenuManager {
     }
 
     void Render(SDL_Renderer* renderer) {
+        if (mainMenu) {
+            
+            if (_selectedCharacter == CHARACTER_NAMES[0]) {
+                mainMenu->setTheme(0); //Sammy
+            }
+            else {
+                mainMenu->setTheme(1);
+            }
+        }
         if (_currentMenu) {
             _currentMenu->Render();
         }
     }
+
+    // MenuState::animateMain(
+
+    // ) {
+    //     if (mainMenu) {
+    //         // make a character
+    //         if _selectedCharacter == CHARACTER_NAMES[0] {
+    //             // sammy
+    //             mainMenu->getCharacter();
+    //             std::async
+    //         } else {
+    //             // sandy
+    //         }
+
+    //         // launch a thread
+    //     }
+    // }
  
     MenuState handleEvent(const SDL_Event& e) {
         

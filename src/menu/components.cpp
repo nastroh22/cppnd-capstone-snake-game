@@ -70,8 +70,8 @@ void Window::Render(SDL_Renderer* renderer){
     SDL_SetRenderDrawColor(renderer, _windowColor.r,  _windowColor.g,  _windowColor.b,  _windowColor.a);
     SDL_RenderFillRect(renderer, &_windowRect);
     RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
-    _title.display(renderer, 
-        _windowRect.x + (_windowRect.w - _title.getWidth()) / 2,
+    _title->display(renderer, 
+        _windowRect.x + (_windowRect.w - _title->getWidth()) / 2,
         _windowRect.y + _title_offset
     );
 }
@@ -82,10 +82,10 @@ void DynamicWindow::Render(SDL_Renderer* renderer){
     // support dynamic text
     RenderUtils::drawBorder(renderer, _windowRect, 2, _borderColor); // thickness of 2
     if (_shouldUpdate) {
-        _title.displayDynamic(renderer, _text_x, _text_y, _cellText); //title is the SDL_TTF interface
+        _title->displayDynamic(renderer, _text_x, _text_y, _cellText); //title is the SDL_TTF interface
         _shouldUpdate = false;
     } else {
-        _title.display(renderer, _text_x, _text_y);
+        _title->display(renderer, _text_x, _text_y);
     }
 }
 

@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "./utils.h"
 #include "./constants.h"
+#include <memory>
 
 // Character Menu Positions
 // constexpr SDL_Rect CHARACTER_BUTTON_RECT = {220, 350, 200, 75};
@@ -92,8 +93,6 @@ class Text {
             SDL_DestroyTexture(_text_texture);
             TTF_CloseFont(_font); //NOTE: One of the fonts becomes nullptr (I think from PlayerEntryMenu)
         }; //free textures
-        int getWidth() const { return _text_rect.w;}
-        int getHeight() const { return _text_rect.h;}
     
         // Rule of 5 (since Text manages an SDL_Texture resource)
         Text(const Text&) = delete;            // prevent accidental copies
@@ -112,6 +111,14 @@ class Text {
             }
             return *this;
         }
+
+
+        int getWidth() const { return _text_rect.w;}
+        int getHeight() const { return _text_rect.h;}
+
+        //setters
+        void setColor(SDL_Color color) {_color = color;}
+
     private:
         SDL_Texture *_text_texture;
         mutable SDL_Rect _text_rect = {0,0,20,20}; // for positioning text, mutable so that display can be const
@@ -124,21 +131,25 @@ class Window {
         SDL_Rect _windowRect; // for positioning button
         SDL_Color _windowColor; // for button color
         SDL_Color _borderColor; // could make customizable
-        Text _title;
+        std::unique_ptr<Text> _title; // unique pointer now so can dynamically change its proeprties at runtiem
         int _title_offset;
         int _text_x, _text_y; // for text positioning
         bool _shouldUpdate = false;
         // Text _content; // could be vector of texts for multiple lines
+        // const std::string _title_font;
+        // const int _title_font_size;
+        // const std::string _title_text;
+        // SDL_Color _text_color;
     
     public:
-        Window(SDL_Renderer* renderer, const std::string& title, SDL_Color win_color, 
+        Window(SDL_Renderer* renderer, const std::string& title_text, SDL_Color win_color, 
                     SDL_Color border_color, SDL_Rect rect, int font_size = DEFAULT_TITLE_FONT_SIZE, 
                         SDL_Color text_color = TITLE_COLOR, std::string font_name = DEFAULT_TITLE_FONT, int title_offset = DEFAULT_TITLE_OFFSET) :
                             _windowRect(rect),  
                             _windowColor(win_color),  
                             _borderColor(border_color), 
                             _title_offset(title_offset),
-                            _title(renderer, Assets::fontMap.at(font_name), font_size, title, text_color) {};
+                            _title(std::make_unique<Text>(renderer, Assets::fontMap.at(font_name), font_size, title_text, text_color)) {};
         
         ~Window() = default; // will call _text destructor by default
         
@@ -146,21 +157,43 @@ class Window {
 
         //formatting helpers
         void leftJustify() {_text_x = _windowRect.x + 15 ;}
-        void rightJustify() {_text_x = _windowRect.x + _windowRect.w - _title.getWidth() - 15 ;}
+        void rightJustify() {_text_x = _windowRect.x + _windowRect.w - _title->getWidth() - 15 ;}
+        
+        // setters for toggling style
         void setX(int x) {_text_x = x;}
         void setY(int y) {_text_y = y;}
+        void setBorderColor(SDL_Color color) {_borderColor = color;}
+        void setWindowColor(SDL_Color color) {_windowColor = color; std::cout << "Setting window color" << std::endl;}
+        
         int getX() const {return _text_x;}
         int getY() const {return _text_y;}
         void setTextPos(int x, int y) { _text_x = x; _text_y = y; }
         void centerText(){
-            _text_x = _windowRect.x + (_windowRect.w - _title.getWidth()) / 2;
-            _text_y = _windowRect.y + (_windowRect.h - _title.getHeight()) / 2;
+            _text_x = _windowRect.x + (_windowRect.w - _title->getWidth()) / 2;
+            _text_y = _windowRect.y + (_windowRect.h - _title->getHeight()) / 2;
         }
         void titleText(){
-            _text_x = _windowRect.x + (_windowRect.w - _title.getWidth()) / 2;
+            _text_x = _windowRect.x + (_windowRect.w - _title->getWidth()) / 2;
             _text_y = _windowRect.y + 10; // pad from top
         }
         void virtual Render(SDL_Renderer* renderer);
+
+        void remakeTitle(
+            SDL_Renderer* renderer, 
+            SDL_Color color,
+            int font_size = DEFAULT_TITLE_FONT_SIZE,
+            std::string font_name = DEFAULT_TITLE_FONT,
+            const std::string &title_text = "Title!"
+        ) 
+        {
+            _title = std::make_unique<Text>(
+                renderer, 
+                Assets::fontMap.at(font_name), 
+                font_size, 
+                title_text, 
+                color
+            );
+        }
 };
 
 class DynamicWindow : public Window {
@@ -265,10 +298,10 @@ class Button {
 protected:
     Text _text;
     const SDL_Rect _buttonRect; // for positioning button
-    const SDL_Color _buttonColor; // for button color
+    SDL_Color _buttonColor; // for button color (un-const for theme switching)
     const MenuState _return_state = MenuState::NONE; // default state
     SDL_Color _borderColor; // non-const to enable hover effect
-    std::string label = "Button";
+    SDL_Color _borderColorDefault; // to revert back on un-hover
     int _borderThickness = 2; // could make customizable
     bool _freeze_border = false; // to keep border on selected button
     int _textX, _textY; // for text positioning
@@ -291,14 +324,18 @@ protected:
                 _buttonColor(color), 
                 _buttonRect(rect),
                 _borderColor(border_color), 
+                _borderColorDefault(border_color),
                 _hover_color(hover_color), 
-                _text(renderer, Assets::fontMap.at(font_name), font_size, text, text_color) 
+                _text(renderer, Assets::fontMap.at(font_name), font_size, text, text_color),
+                label(text)
         { 
            _textX =  _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2;
            _textY = _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2;
         } // default centered text
 
 public:
+    std::string label = "Button";
+
     virtual ~Button() = default; // will call _text destructor by default
 
     // State Checkers
@@ -323,7 +360,7 @@ public:
         } 
         else {
             // Revert to default border color
-            _borderColor = DEFAULT_BORDER_COLOR; // TODO: make this configurable as well
+            _borderColor = _borderColorDefault; // TODO: make this configurable as well
             _borderThickness = 2;
         }
     }
@@ -332,13 +369,17 @@ public:
         _freeze_border = true; // keep border on selected button
     }
     void unselect() {
-        _borderColor = DEFAULT_HOVER_COLOR;
+        _borderColor = _borderColorDefault;
         _freeze_border = false;
+        _borderThickness = 2;
     }
 
     // Setter Utils
     void setX(int x) { _textX = x; }
     void setY(int y) { _textY = y; }
+    void setBorderColor(SDL_Color color) { _borderColor = color; _borderColorDefault = color; }
+    void setColor(SDL_Color color) { _buttonColor = color; }
+    void setHoverColor(SDL_Color color) { _hover_color = color; }
 
     // Render Core Button
     virtual void Render(SDL_Renderer* renderer){
@@ -370,11 +411,13 @@ class ImageButton : public Button
     SDL_Texture* _image_texture = nullptr;
 
     public:
-    ImageButton(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text, std::string image_asset_path)
-        : Button(renderer, label, color, rect, text), _asset_path(std::move(image_asset_path))
+    ImageButton(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text,
+                    std::string image_asset_path, std::string const &font_name = DEFAULT_FONT_NAME, int font_size = DEFAULT_TITLE_FONT_SIZE, 
+                        SDL_Color text_color = TITLE_COLOR, SDL_Color border_color = DEFAULT_BORDER_COLOR, SDL_Color hover_color = DEFAULT_HOVER_COLOR) :
+                            Button(renderer, label, color, rect, text, font_name, font_size, text_color, border_color, hover_color),
+                            _asset_path(std::move(image_asset_path))
     {
-        // load image texture
-        _image_texture = RenderUtils::InitTexture(renderer, _asset_path); // figure out a better way here
+        _image_texture = RenderUtils::InitTexture(renderer, _asset_path); // load image
     }
     ~ImageButton() override {
         if (_image_texture) {

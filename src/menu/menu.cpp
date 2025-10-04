@@ -83,13 +83,10 @@ MenuState Menu::queryButtons(const SDL_Event& e) {
 }
 //tehchnically can use internal _renderer member... possible TODO
 MainMenu::MainMenu(SDL_Renderer* renderer) 
-    : Menu(renderer) // Main switches instantly, so disable select effect
+    : Menu(renderer), _renderer(renderer) // Main switches instantly, so disable select effect
     {
-        // Some vector stuff just for understanding
-        // std::cout << "size: " << _buttons.size() << " capacity: " << _buttons.capacity() << std::endl;
-        _buttons.reserve(4); // reserve space for 2 buttons
-        // std::cout << "After reserve, size: " << _buttons.size() << " capacity: " << _buttons.capacity() << std::endl;
-        _buttons.emplace_back(std::make_unique<PlayButton>(renderer)); //TODO can use base reference _renderer avoid another copy 
+        _buttons.reserve(4); // reserve space for 4 buttons
+        _buttons.emplace_back(std::make_unique<PlayButton>(renderer)); 
         _buttons.emplace_back(std::make_unique<ScoreButton>(renderer)); 
         _buttons.emplace_back(std::make_unique<CharacterButton>(renderer));
         _buttons.emplace_back(std::make_unique<QuitButton>(renderer)); 

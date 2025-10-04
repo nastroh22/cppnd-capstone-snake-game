@@ -89,6 +89,7 @@ constexpr float DEFAULT_HOVER_THICKNESS = 5;
 constexpr const char* DEFAULT_BUTTON_FONT = "public_pixel";  //public_pixel
 constexpr const char* DEFAULT_TITLE_FONT = "rocket";
 constexpr const char* DEFAULT_TABLE_FONT = "game_played";
+constexpr const char* DEFAULT_FONT_NAME = "comic_sans";
 
 constexpr int DEFAULT_BUTTON_FONT_SIZE = 20;
 constexpr int DEFAULT_TITLE_FONT_SIZE = 32;
@@ -105,6 +106,7 @@ struct MainMenuConstants {
 
     std::string TITLE_TEXT = "Welcome to SSSnake!";
     int TITLE_FONT_SIZE = DEFAULT_TITLE_FONT_SIZE;
+    std::string TITLE_FONT = DEFAULT_TITLE_FONT;
 
     const int button_width = 265;
     const int button_height = 85;
@@ -124,10 +126,10 @@ struct MainMenuConstants {
     std::string PLAY_BUTTON_LABEL = "Play!";
 
 
-    SDL_Color PLAY_BUTTON_COLOR = AVOCADO; //SPRING; //ARMY
-    SDL_Color CHAR_BUTTON_COLOR = ARMY;
+    SDL_Color PLAY_BUTTON_COLOR = GREEN; //SPRING; //ARMY //GREEN
+    SDL_Color CHAR_BUTTON_COLOR = AVOCADO;
     SDL_Color SCORE_BUTTON_COLOR = MOSS; //GOLD, ARMY, DARKGOLD
-    SDL_Color QUIT_BUTTON_COLOR = RUST;
+    SDL_Color QUIT_BUTTON_COLOR = DARKGOLD;
     SDL_Color WINDOW_COLOR = DEFAULT_WINDOW_COLOR;
     SDL_Color WINBORDER_COLOR = DEFAULT_WINBORDER_COLOR;
     
@@ -136,7 +138,22 @@ struct MainMenuConstants {
     SDL_Color BUTTON_TEXT_COLOR = WHITE;
     SDL_Color BUTTON_BORDER_COLOR = WHITE;
     SDL_Color HOVER_COLOR = YELLOW;
-    
+
+    SDL_Color SAMMY_WINDOW_COLOR = WINDOW_COLOR;
+    SDL_Color SAMMY_BORDER_COLOR = WINBORDER_COLOR;
+    SDL_Color SAMMY_TITLE_COLOR = SPRING;
+
+    SDL_Color SANDY_WINDOW_COLOR = RETRO_PEACH; // DARKGOLD; RETRO_PEACH
+    SDL_Color SANDY_BORDER_COLOR = DARKGOLD;
+    SDL_Color SANDY_TITLE_COLOR = GREEN;  // or DARKGOLD
+
+    SDL_Color SANDY_PLAY_BUTTON_COLOR = DARKGOLD; //GOLD
+    SDL_Color SANDY_CHAR_BUTTON_COLOR = GOLD; //ARMY
+    SDL_Color SANDY_SCORE_BUTTON_COLOR = SIENNA; //GOLD SIENNA // ARMY
+    SDL_Color SANDY_QUIT_BUTTON_COLOR = RUST; //RUST
+
+    SDL_Color SANDY_BUTTON_BORDER_COLOR = WHITE;
+    SDL_Color SANDY_BUTTON_HOVER_COLOR =  GREEN; //AVOCADO; //WHITE ?  //RETRO_BLUE // MAGENTA?
 };
 
 
@@ -198,8 +215,8 @@ struct ScoreMenuConstants {
     SDL_Color SCORE_DOWN_BUTTON_COLOR = DEEPBLUE; 
     SDL_Color SCORE_BACK_BUTTON_COLOR = FIRE;
 
-    SDL_Color BUTTON_BORDER_COLOR = WHITE;
-    SDL_Color HOVER_COLOR = RETRO_BLUE;
+    SDL_Color BUTTON_BORDER_COLOR = RETRO_BLUE; // WHITE
+    SDL_Color HOVER_COLOR = YELLOW;
 
     int NUM_ROWS = 5;
     int NUM_COLS = 2;
@@ -224,11 +241,11 @@ struct CharacterMenuConstants {
     SDL_Rect BACK_BUTTON_RECT = {button_x, 400, 250, 85};
     SDL_Color BACK_BUTTON_COLOR = DEFAULT_BACK_BUTTON_COLOR;
     
-    SDL_Color BUTTON_BORDER_COLOR = WHITE;
+
+    SDL_Color BUTTON_BORDER_COLOR = RETRO_BLUE;
     SDL_Color HOVER_COLOR = RETRO_BLUE;
 
 
- 
     int TITLE_OFFSET = 65; // space for title
     int BUTTON_PADDING_X = 50;
     int BUTTON_PADDING_Y = 50;
