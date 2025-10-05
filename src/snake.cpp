@@ -13,6 +13,9 @@ void Snake::Update(SDL_Point const &ai_location) {
       static_cast<int>(head_x),
       static_cast<int>(head_y)};  // Capture the head's cell after updating.
 
+  
+  // std::cout << "Snake Head Pos Internally: " << head_x << ", " << head_y << std::endl;
+
   // Update all of the body vector items if the snake head has moved to a new
   // cell.
   if (current_cell.x != prev_cell.x || current_cell.y != prev_cell.y) {

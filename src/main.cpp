@@ -41,6 +41,7 @@ int main() {
       
       case GameState::MENU: {
         start = menu.display();
+        std::cout << "Do we start??" << start << std::endl;
         Player = menu.getPlayerName();
         characterName = menu.getCharacterSelection();
         if (start){ 

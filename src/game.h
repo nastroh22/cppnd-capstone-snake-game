@@ -25,7 +25,9 @@ class Game {
   int GetSize() const;
   std::string GetPlayerName();
   void InitCharacter(Renderer &renderer, CharacterEnum character) { 
-      snake.InitTextures(renderer.get(),character); 
+    std::cout << "Initializing Game Character Textures " << std::endl;
+    std::cout << &renderer << std::endl;
+    snake.InitTextures(renderer.get(),character); 
   }; 
 
  private:

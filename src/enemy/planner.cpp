@@ -2,7 +2,7 @@
 #include <cmath>
 #include "planner.h"
 
-SDL_Point Planner::getNextMove() {
+SDL_Point Planner::getNextMove(PlanBehaviors behavior) {
     // Dummy logic for now, move in square pattern
     _next_move = FollowLine();
     return _next_move;
@@ -19,6 +19,29 @@ SDL_Point Planner::Patrol() {
     _counter ++;
     return SDL_Point{static_cast<int>(x),static_cast<int>(y)};
 }
+
+// void SDL_Point Planner::CircleMenu(std::vector<SDL_Point> path) {
+//     // Patrol logic here, square pattern
+//     // For simplicity, let's say the enemy moves in a square pattern
+    
+//     auto start = path.begin();
+//     auto ptr = start;
+//     auto end = path.end();
+//     bool reverse = False;
+//     SDL_Point goal = *ptr;
+
+//     while (_running){
+//         _next_move = FollowLine();
+
+//         if (_next.x - goal.x) < 2 && (_next.y - goal.y) < 2 {
+//             ptr += reverse ? : -1 : 1;
+//             if (ptr == start || ptr == end) {reverse = !reverse;} // reverse direction
+//             goal = *ptr;
+//         }
+//         publishMove();
+//         std::this_thread::sleep_for(std::chrono::milliseconds(5)); 
+//     }
+// }
 
 std::pair<double, double> inline NormalizeSpeed(int dx, int dy, float speed = 2.0f) {
     // Handle zero direction edge case
@@ -46,6 +69,7 @@ SDL_Point Planner::FollowLine() {
     return SDL_Point{static_cast<int>(x),static_cast<int>(y)};
 }
 
+// run in game loop ("chase")
 bool Planner::run() {
     while (_running) { 
         SDL_Point move = getNextMove();

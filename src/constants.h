@@ -52,6 +52,10 @@ constexpr SDL_Color FIRE = {252, 78, 41, 255};
 constexpr SDL_Color LEMON = {255, 244, 79, 255};
 constexpr SDL_Color YELLOW = {255, 255, 0, 255};
 constexpr SDL_Color RETRO_PEACH = {255, 226, 138, 250};
+constexpr SDL_Color TOPAZ = {247, 210, 119, 255};
+constexpr SDL_Color SUNRAY = {227, 192, 96, 255};
+constexpr SDL_Color OLD_GOLD = {217, 175, 71, 255};
+constexpr SDL_Color BRONZE = {206, 144, 41, 255};
 
 //Greens
 constexpr SDL_Color NEON_GREEN = {12, 205, 23, 255};
@@ -107,12 +111,13 @@ struct MainMenuConstants {
     std::string TITLE_TEXT = "Welcome to SSSnake!";
     int TITLE_FONT_SIZE = DEFAULT_TITLE_FONT_SIZE;
     std::string TITLE_FONT = DEFAULT_TITLE_FONT;
+    bool ANIMATE_MAIN_MENU = true;
 
     const int button_width = 265;
     const int button_height = 85;
     const int button_x = static_cast<int>((kScreenWidth - button_width) / 2); // center
     const int button_y_padding = 15;
-    const int starting_y = 150;
+    const int starting_y = 125;
 
     // Future TODO: use button layout functions instead
     SDL_Rect PLAY_BUTTON_RECT =  {button_x,   starting_y,                                     button_width,  button_height};
@@ -137,23 +142,25 @@ struct MainMenuConstants {
     int BUTTON_FONT_SIZE = 32;
     SDL_Color BUTTON_TEXT_COLOR = WHITE;
     SDL_Color BUTTON_BORDER_COLOR = WHITE;
-    SDL_Color HOVER_COLOR = YELLOW;
+    SDL_Color HOVER_COLOR = BRIGHT_GREEN;
 
     SDL_Color SAMMY_WINDOW_COLOR = WINDOW_COLOR;
-    SDL_Color SAMMY_BORDER_COLOR = WINBORDER_COLOR;
-    SDL_Color SAMMY_TITLE_COLOR = SPRING;
+    SDL_Color SAMMY_BORDER_COLOR = BRIGHT_GREEN;
+    SDL_Color SAMMY_TITLE_COLOR = BRIGHT_GREEN;
 
-    SDL_Color SANDY_WINDOW_COLOR = RETRO_PEACH; // DARKGOLD; RETRO_PEACH
-    SDL_Color SANDY_BORDER_COLOR = DARKGOLD;
-    SDL_Color SANDY_TITLE_COLOR = GREEN;  // or DARKGOLD
+    SDL_Color SANDY_WINDOW_COLOR = DARKGOLD; // DARKGOLD; RETRO_PEACH
+    SDL_Color SANDY_BORDER_COLOR = YELLOW;
+    SDL_Color SANDY_TITLE_COLOR = YELLOW;  // or TOPAZ
 
-    SDL_Color SANDY_PLAY_BUTTON_COLOR = DARKGOLD; //GOLD
+    SDL_Color SANDY_PLAY_BUTTON_COLOR = OLD_GOLD; //GOLD
     SDL_Color SANDY_CHAR_BUTTON_COLOR = GOLD; //ARMY
-    SDL_Color SANDY_SCORE_BUTTON_COLOR = SIENNA; //GOLD SIENNA // ARMY
-    SDL_Color SANDY_QUIT_BUTTON_COLOR = RUST; //RUST
+    SDL_Color SANDY_SCORE_BUTTON_COLOR = BRONZE; //GOLD SIENNA // ARMY
+    SDL_Color SANDY_QUIT_BUTTON_COLOR = SIENNA; //RUST
 
     SDL_Color SANDY_BUTTON_BORDER_COLOR = WHITE;
-    SDL_Color SANDY_BUTTON_HOVER_COLOR =  GREEN; //AVOCADO; //WHITE ?  //RETRO_BLUE // MAGENTA?
+    SDL_Color SANDY_BUTTON_HOVER_COLOR =  YELLOW; //AVOCADO; //WHITE ?  //RETRO_BLUE // MAGENTA?
+
+    
 };
 
 
@@ -209,7 +216,7 @@ struct ScoreMenuConstants {
     SDL_Color SCORE_CELL_BORDER_COLOR = RETRO_BLUE;
     
     SDL_Color SCORE_WINDOW_COLOR = SLATE;
-    SDL_Color SCORE_WINDOW_BORDER_COLOR = LEMON;
+    SDL_Color SCORE_WINDOW_BORDER_COLOR = YELLOW;
     
     SDL_Color SCORE_UP_BUTTON_COLOR = BRIGHT_GREEN; // GREEN, LAVENDER, SPRING, BRIGHT_GREEN
     SDL_Color SCORE_DOWN_BUTTON_COLOR = DEEPBLUE; 

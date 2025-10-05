@@ -18,6 +18,9 @@
     ?TODO: and another extension would be multiple hawks or 'swarms' (which glide across screen in some random pattern, then exit)
 */
 
+// TODO: technically PATROL and CIRCLE are the same
+enum PlanBehaviors { PATROL, FOLLOW_LINE, CIRCLE }; // could make more complex later
+
 
 // NOTE: maybe store the hawk texture here instead
 class Planner {
@@ -29,7 +32,7 @@ class Planner {
                 _publisher(pubq), _subscriber(subq), _shutdown_flag(_shutdown_flag) {};
         ~Planner() = default;
 
-        SDL_Point getNextMove();
+        SDL_Point getNextMove(PlanBehaviors behavior = FOLLOW_LINE);
         void publishMove() {
             if (_shutdown_flag->load()){
                 _running = false; // break loop
@@ -51,17 +54,27 @@ class Planner {
             goal.x = temp.value().x;  //* (kScreenWidth/ kGridWidth); // or deal compeltely in grid units here
             goal.y = temp.value().y;  //* (kScreenHeight/ kGridHeight);
         };
-        bool start() {_running = true; resetPosition(); return _running;}; // NOTE: can probably just coordinate with shutdown flag
+        bool start(double _x=1.0, double _y=1.0) {
+            _running = true; 
+            setPosition(_x,_y); 
+            return _running;
+        };
         bool stop() {_running = false; return _running;};
         bool is_running() const {return _running;};
         SDL_Point Patrol();
         SDL_Point FollowLine();
         void printGoalPoint() const {std::cout << "Goal : " << goal.x << ", " << goal.y << std::endl;};
+        SDL_Point Goal() const {return goal;}
         void checkPubqSize() const {std::cout << "Publisher Queue Size: "; _publisher->size();};
         void checkSubqSize() const {std::cout << "Subscriber Queue Size: "; _subscriber->size();};
         void resetPosition() { x = 1.0; y = 1.0;}; // reset to corner
+        void setPosition(double _x, double _y) {
+            x = _x; y = _y; 
+            // std::cout<<"Set Position to: "<<x<<","<<y<<std::endl;
+        };
         bool run(); // main loop
         void debugRunFlag() const {std::cout << "Running? " << _running << std::endl;};
+        void setSpeed(float new_speed) { speed = new_speed; };
 
     private:
         // Update to shared pointer eventually? (NOTE: threads make less sense for simple behavior)
@@ -74,7 +87,7 @@ class Planner {
         double x = 1.0;
         double y = 1.0;
 
-        bool _running = true;
+        bool _running = false; // must be manually started
         int delta_x = 0;
         int delta_y = 0;
         float speed{0.06f}; // 60% of the snake speed // TODO move everything to constants.h

@@ -87,6 +87,7 @@ namespace RenderUtils{
     template<size_t N>
     inline void freeTextureArray(std::array<SDL_Texture*, N>& textures) {
         for (auto& texture : textures) {
+            std::cout << "Texture is Null? " << (texture == nullptr) << std::endl;
             if (texture) {
                 SDL_DestroyTexture(texture);
                 std::cout<<" Freed texture"<<std::endl;
@@ -275,7 +276,7 @@ namespace ScoreIO{
 template <typename T>
 class MessageQueue {
 public:
-    MessageQueue(std::shared_ptr<std::atomic<bool>> shutdown_flag) : _shutdown_flag(shutdown_flag) {};
+    MessageQueue(std::shared_ptr<std::atomic<bool>> shutdown_flag, size_t size=5) : _shutdown_flag(shutdown_flag), _maxSize(size) {};
     ~MessageQueue() = default;
 
     // feels more intuitive to actually call this "receive" since it is called by the consumer
@@ -284,7 +285,7 @@ public:
         _cond1.wait(lock, [this] { 
             return (!_messages.empty() || _shutdown_flag->load());}); // wait until not empty or shutdown is true
         if (_shutdown_flag->load()){
-            std::cout << "Shutdown in send q received? " << std::endl;
+            std::cout << "Shutdown in send q received? " << _shutdown_flag.get() << std::endl;
             _cond2.notify_all();
             return std::nullopt;
         }

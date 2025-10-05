@@ -167,6 +167,7 @@ class Window {
         
         int getX() const {return _text_x;}
         int getY() const {return _text_y;}
+        SDL_Rect getDimensions() const {return _windowRect;}
         void setTextPos(int x, int y) { _text_x = x; _text_y = y; }
         void centerText(){
             _text_x = _windowRect.x + (_windowRect.w - _title->getWidth()) / 2;
@@ -296,7 +297,7 @@ enum class MenuState { // Buttons tied to MenuStates
 class Button {
 
 protected:
-    Text _text;
+    std::unique_ptr<Text> _text;
     const SDL_Rect _buttonRect; // for positioning button
     SDL_Color _buttonColor; // for button color (un-const for theme switching)
     const MenuState _return_state = MenuState::NONE; // default state
@@ -326,11 +327,11 @@ protected:
                 _borderColor(border_color), 
                 _borderColorDefault(border_color),
                 _hover_color(hover_color), 
-                _text(renderer, Assets::fontMap.at(font_name), font_size, text, text_color),
+                _text(std::make_unique(renderer, Assets::fontMap.at(font_name), font_size, text, text_color)),
                 label(text)
         { 
-           _textX =  _buttonRect.x + (_buttonRect.w - _text.getWidth()) / 2;
-           _textY = _buttonRect.y + (_buttonRect.h - _text.getHeight()) / 2;
+           _textX =  _buttonRect.x + (_buttonRect.w - _text->getWidth()) / 2;
+           _textY = _buttonRect.y + (_buttonRect.h - _text->getHeight()) / 2;
         } // default centered text
 
 public:
@@ -381,6 +382,8 @@ public:
     void setColor(SDL_Color color) { _buttonColor = color; }
     void setHoverColor(SDL_Color color) { _hover_color = color; }
 
+    SDL_Rect getDims() const { return _buttonRect; }
+
     // Render Core Button
     virtual void Render(SDL_Renderer* renderer){
         SDL_SetRenderDrawColor(renderer, _buttonColor.r,  _buttonColor.g,  _buttonColor.b,  _buttonColor.a);
@@ -401,6 +404,23 @@ public:
         std::cout << "Return State: " << static_cast<int>(_return_state) << "\n"; // cast enum to int for display
     }
     void printLabel() const { std::cout << "Button Label: " << label << std::endl; }
+
+    void remakeText(
+            SDL_Renderer* renderer, 
+            SDL_Color color,
+            int font_size = DEFAULT_TITLE_FONT_SIZE,
+            std::string font_name = DEFAULT_TITLE_FONT,
+            const std::string &title_text = "Title!"
+        ) 
+        {
+            _title = std::make_unique<Text>(
+                renderer, 
+                Assets::fontMap.at(font_name), 
+                font_size, 
+                title_text, 
+                color
+            );
+        }
 
 };
 
