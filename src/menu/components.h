@@ -327,7 +327,7 @@ protected:
                 _borderColor(border_color), 
                 _borderColorDefault(border_color),
                 _hover_color(hover_color), 
-                _text(std::make_unique(renderer, Assets::fontMap.at(font_name), font_size, text, text_color)),
+                _text(std::make_unique<Text>(renderer, Assets::fontMap.at(font_name), font_size, text, text_color)),
                 label(text)
         { 
            _textX =  _buttonRect.x + (_buttonRect.w - _text->getWidth()) / 2;
@@ -389,7 +389,7 @@ public:
         SDL_SetRenderDrawColor(renderer, _buttonColor.r,  _buttonColor.g,  _buttonColor.b,  _buttonColor.a);
         SDL_RenderFillRect(renderer, &_buttonRect);
         RenderUtils::drawBorder(renderer, _buttonRect, _borderThickness, _borderColor);
-        _text.display(renderer, _textX, _textY);
+        _text->display(renderer, _textX, _textY);
     }
 
 
@@ -413,7 +413,7 @@ public:
             const std::string &title_text = "Title!"
         ) 
         {
-            _title = std::make_unique<Text>(
+            _text = std::make_unique<Text>(
                 renderer, 
                 Assets::fontMap.at(font_name), 
                 font_size, 
@@ -433,7 +433,7 @@ class ImageButton : public Button
     public:
     ImageButton(SDL_Renderer* renderer, MenuState label, SDL_Color color, SDL_Rect rect, const std::string& text,
                     std::string image_asset_path, std::string const &font_name = DEFAULT_FONT_NAME, int font_size = DEFAULT_TITLE_FONT_SIZE, 
-                        SDL_Color text_color = TITLE_COLOR, SDL_Color border_color = DEFAULT_BORDER_COLOR, SDL_Color hover_color = DEFAULT_HOVER_COLOR) :
+                        SDL_Color text_color = DEFAULT_TEXT_COLOR, SDL_Color border_color = DEFAULT_BORDER_COLOR, SDL_Color hover_color = DEFAULT_HOVER_COLOR) :
                             Button(renderer, label, color, rect, text, font_name, font_size, text_color, border_color, hover_color),
                             _asset_path(std::move(image_asset_path))
     {
@@ -454,7 +454,7 @@ class ImageButton : public Button
 
         int title_offset = 15;
         setY(_buttonRect.y + 10); // text y position (redunant)
-        _text.display(renderer, _textX, _buttonRect.y + title_offset); 
+        _text->display(renderer, _textX, _buttonRect.y + title_offset); 
 
         // render image centered
         if (_image_texture) {

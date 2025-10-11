@@ -113,8 +113,8 @@ void Renderer::RenderHawk(SDL_Rect block, SDL_Point const &ai_location) {
     // AI Texture
   block.x = ai_location.x * block.w; 
   block.y = ai_location.y * block.h;
-  block.w *= 1.45;
-  block.h *= 1.45; //scale size a bit
+  block.w *= 1.75;
+  block.h *= 1.75; //scale size a bit
   animateHawk(block); // update iterator
   SDL_RenderCopy(sdl_renderer, *_hawk_it, nullptr, &block);
   _prev_x = block.x; // store previous x position for direction check

@@ -164,7 +164,7 @@ class CharacterSelectButton : public ImageButton {
     CharacterSelectButton(SDL_Renderer* renderer, int char_index, SDL_Rect rect)
         : ImageButton(renderer, MenuState::NONE, CHARACTER_COLORS[char_index], rect, 
             CHARACTER_NAMES[char_index], characterFileMap.at(static_cast<CharacterEnum>(char_index))[0], 
-                "comic_sans", 28, TITLE_COLOR, CharConst.BUTTON_BORDER_COLOR, CharConst.HOVER_COLOR),  _characterName(CHARACTER_NAMES[char_index])
+                "comic_sans", 28, CharConst.BUTTON_TEXT_COLOR, CharConst.BUTTON_BORDER_COLOR, CharConst.HOVER_COLOR),  _characterName(CHARACTER_NAMES[char_index])
         {
             label = CHARACTER_NAMES[char_index];
         }
@@ -339,13 +339,13 @@ class MainMenu : public Menu {
                 button->setHoverColor(MainConst.HOVER_COLOR);
 
 
-                // button->remakeText(
-                //     _renderer,
-                //     MainConst.BUTTON_FONT,
-                //     MainConst.BUTTON_FONT_SIZE,
-                //     button->label, // keep same label
-                //     MainConst.BUTTON_TEXT_COLOR
-                // );
+                button->remakeText(
+                    _renderer,
+                    MainConst.BUTTON_TEXT_COLOR,
+                    MainConst.BUTTON_FONT_SIZE,
+                    MainConst.BUTTON_FONT,
+                    button->label // keep same label
+                );
 
 
                 if (button->label == MainConst.PLAY_BUTTON_LABEL) {
@@ -377,6 +377,15 @@ class MainMenu : public Menu {
             for (auto &button : _buttons){
                 button->setBorderColor(MainConst.SANDY_BUTTON_BORDER_COLOR);
                 button->setHoverColor(MainConst.SANDY_BUTTON_HOVER_COLOR);
+
+                button->remakeText(
+                    _renderer,
+                    MainConst.SANDY_BUTTON_TEXT_COLOR,
+                    MainConst.BUTTON_FONT_SIZE,
+                    MainConst.BUTTON_FONT,
+                    button->label // keep same label
+                );
+                
                 std::cout << "Update Button!" << button->label << std::endl;
                 if (button->label == MainConst.PLAY_BUTTON_LABEL) {
                     button->setColor(MainConst.SANDY_PLAY_BUTTON_COLOR);
@@ -593,6 +602,7 @@ class MenuManager {
         // a flag to make animation optional
         bool _shouldAnimate = MainConst.ANIMATE_MAIN_MENU; 
     
+        bool _break = false;
 
         // animation state
         _launchPlanner = _shouldAnimate;
@@ -602,7 +612,7 @@ class MenuManager {
         std::future<bool> future;
         SDL_Point pos; // render position
         std::vector<SDL_Rect> body;
-        size_t body_size = 10;
+        size_t body_size = 30;
         body.reserve(body_size);
         SDL_Point _charDims = {24,24};
         Snake snake(kGridWidth, kGridHeight); // dummy snake for rendering body
@@ -698,12 +708,12 @@ class MenuManager {
                     running = false; // exit menu (should exit anyway from nullptr)
                 }
                 _state = handleEvent(e);
-                // if (_state == MenuState::QUIT) {
-                //     shutdown_thread();
-                //     return false; // redundant ? 
-                // } 
+                if (_state == MenuState::QUIT) {
+                    running=false;
+                }
                 switchMenu();
             }
+            if (!running) {break;} // extra break flag
 
 
             SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255); //background

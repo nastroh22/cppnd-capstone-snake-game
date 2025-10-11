@@ -87,7 +87,6 @@ namespace RenderUtils{
     template<size_t N>
     inline void freeTextureArray(std::array<SDL_Texture*, N>& textures) {
         for (auto& texture : textures) {
-            std::cout << "Texture is Null? " << (texture == nullptr) << std::endl;
             if (texture) {
                 SDL_DestroyTexture(texture);
                 std::cout<<" Freed texture"<<std::endl;
