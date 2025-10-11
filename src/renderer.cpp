@@ -13,18 +13,6 @@ Renderer::Renderer(const std::size_t screen_width,
       grid_width(grid_width),
       grid_height(grid_height) {
   
-  //NOTE: not that big of a deal, just pass copies of blocks, maybe do this later
-  // auto init_blocks = [&]() {
-  //     SDL_Rect block;
-  //     block.w = screen_width / grid_width;
-  //     block.h = screen_height / grid_height;
-  //     return block;
-  // };
-
-  // std::for_each({&_snake_block, &_item_block, &_hawk_block}, 
-  //               [&](SDL_Rect *b){*b = init_blocks();});
-
-  
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "SDL could not initialize.\n";
@@ -85,6 +73,17 @@ void Renderer::RenderItem(SDL_Rect block, RenderUtils::Item const &item) {
     _item_textures[item.name], nullptr, &block); 
 };
 
+void Renderer::RenderBomb(
+  SDL_Rect block, RenderUtils::Bomb const &bomb
+) 
+{
+  block.x = bomb.x * block.w;
+  block.y = bomb.y * block.h;
+  if (bomb.is_active){
+    SDL_RenderCopy(sdl_renderer, _item_textures["bomb"], nullptr, &block);
+  }
+};
+
 void Renderer::animateHawk(SDL_Rect const &block) {
   _flap_frame_count++;
   if (_flap_frame_count >= Assets::FLAP_RATE) {
@@ -122,10 +121,17 @@ void Renderer::RenderHawk(SDL_Rect block, SDL_Point const &ai_location) {
 
 void Renderer::RenderSnake(SDL_Rect block, Snake const &snake) {
   // Render snake's body
-  for (SDL_Point const &point : snake.body) {
-    block.x = point.x * block.w;
-    block.y = point.y * block.h;
-    SDL_RenderCopy(sdl_renderer, snake.get_body_texture(), nullptr, &block);
+  _blink_frame_count++;
+  if (_blink_frame_count >= Assets::SNAKE_BLINK_RATE || !snake.is_immune) {
+    _blink_frame_count = 0;
+  }
+
+  if (_blink_frame_count >= Assets::SNAKE_BLINK_RATE/2 || !snake.is_immune){
+    for (SDL_Point const &point : snake.body) {
+      block.x = point.x * block.w;
+      block.y = point.y * block.h;
+      SDL_RenderCopy(sdl_renderer, snake.get_body_texture(), nullptr, &block);
+    }
   }
   // Render snake's head
   block.x = static_cast<int>(snake.head_x) * block.w ;
@@ -140,17 +146,28 @@ void Renderer::RenderSnake(SDL_Rect block, Snake const &snake) {
 void Renderer::Render(
     Snake const &snake, 
     RenderUtils::Item &item,
-    const SDL_Point hawk_location) 
+    std::vector<RenderUtils::Bomb> &bombs, 
+    const SDL_Point hawk_location
+  ) 
 { 
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
 
   // Clear screen
-  SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
+  // SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF); // black
+  // Optional render different background colors, but I like sticking to green
+  // if (snake.name == "Sammy"){
+  //   SDL_SetRenderDrawColor(sdl_renderer, AVOCADO.r, AVOCADO.g, AVOCADO.b, 15); //AVOCADO
+  // }
+  // else {
+  //   SDL_SetRenderDrawColor(sdl_renderer, OLD_GOLD.r, OLD_GOLD.g, OLD_GOLD.b, 15);
+  // }
+  SDL_SetRenderDrawColor(sdl_renderer, AVOCADO.r, AVOCADO.g, AVOCADO.b, 15); 
   SDL_RenderClear(sdl_renderer);
 
   //Render Textures
+  for (auto &bomb : bombs) {RenderBomb(block, bomb);}
   RenderItem(block, item);
   RenderHawk(block, hawk_location);
   RenderSnake(block, snake);

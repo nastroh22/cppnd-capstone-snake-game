@@ -7,3 +7,5 @@ src/ai/model.cpp
 local/*
 assets/fonts/local/
 *.DS_Store
+.share/
+external/

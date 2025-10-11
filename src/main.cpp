@@ -41,17 +41,15 @@ int main() {
       
       case GameState::MENU: {
         start = menu.display();
-        std::cout << "Do we start??" << start << std::endl;
         Player = menu.getPlayerName();
         characterName = menu.getCharacterSelection();
         if (start){ 
             state = GameState::PLAYING;
-            std::cout << "Character Name? " << characterName << std::endl;
          } else {
-             std::cout << "Should Exit : " << std::endl;
+            std::cout << "Clean Exit? : " << std::endl;
             state = GameState::EXIT;
         }
-        //TODO: let Menu go out of scope here ??
+        //TODO (?): let Menu go out of scope here
         break;
       }
 
@@ -60,7 +58,6 @@ int main() {
         // get character textures:
         CharacterEnum character = characterEnumMap.at(characterName);
 
-        
         shutdown_flag->store(false);
         planner.start(); // maybe move the thread launching into this function
         
@@ -70,7 +67,7 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
         
         {
-          Game game(kGridWidth, kGridHeight);
+          Game game(kGridWidth, kGridHeight, characterName);
           game.InitCharacter(renderer, character); // init files from player's selected character
           // game.initQueues(std::move(playerq.get()), std::move(aiq.get())); //TODO: game instance manages all related state
           std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
@@ -87,7 +84,7 @@ int main() {
           // aiq->clear(); playerq->clear(); // Moved these calls inside game.Run();
           std::this_thread::sleep_for(std::chrono::milliseconds(500));
           planner.stop(); // std::cout << "Enemy thread is off: " << test << std::endl;
-          std::cout << "flag: " << std::boolalpha << shutdown_flag->load() << std::endl;
+          //std::cout << "flag: " << std::boolalpha << shutdown_flag->load() << std::endl; // debug
           bool test = f.get(); // TODO: this could be causing the bug ?
           ScoreIO::Entry new_entry{Player, game.GetScore()};
           ScoreIO::save_score(new_entry);

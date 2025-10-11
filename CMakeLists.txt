@@ -32,6 +32,18 @@ add_executable(SnakeGame src/main.cpp src/game.cpp src/controller.cpp src/render
                     src/snake.cpp src/menu/components.cpp src/menu/menu.cpp src/enemy/planner.cpp)
 
 # link
+if(WIN32)
+
+    include_directories(${CMAKE_SOURCE_DIR}/external/SDL2/include)
+    include_directories(${CMAKE_SOURCE_DIR}/external/SDL2_ttf/include)
+
+    target_link_libraries(
+        SnakeGame
+        mingw32
+        SDL2main
+        SDL2
+        SDL2_ttf
+    )
 string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
 string(STRIP ${SDL2_TTF_LIBRARY} SDL2_TTF_LIBRARY)
 target_link_libraries(

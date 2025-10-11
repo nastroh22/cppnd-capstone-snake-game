@@ -90,7 +90,7 @@ class Planner {
         bool _running = false; // must be manually started
         int delta_x = 0;
         int delta_y = 0;
-        float speed{0.06f}; // 60% of the snake speed // TODO move everything to constants.h
+        float speed{Assets::HAWK_SPEED}; // Default is Orignal snake speed
         SDL_Point goal = SDL_Point{2,2}; // Location of the player
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
         SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering

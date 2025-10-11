@@ -18,7 +18,9 @@ class Snake {
       : grid_width(grid_width),
         grid_height(grid_height),
         head_x(grid_width / 2),
-        head_y(grid_height / 2) {
+        head_y(grid_height / 2),
+        name(name) 
+        {
           std::cout << "Creating Snake Object for " << name <<std::endl;
           // For Safety, init the snake textures with NUll ptrs, user must explicitly call InitTextures
           _texture_map.fill(nullptr);
@@ -58,6 +60,8 @@ class Snake {
   float head_x;
   float head_y;
   std::string name = "None";
+  bool is_immune = false;
+  int immunity_timer = 0;
 
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell, SDL_Point const &ai_location);
 

@@ -318,20 +318,28 @@ namespace Assets{
 
     inline const std::unordered_map<std::string, std::string> itemTextureMap = {
         { "banana", "../assets/items/banana.bmp" },
-        { "dot", "../assets/items/dot.bmp" },
+        { "apple", "../assets/items/green_apple.bmp" },
         { "cherries", "../assets/items/cherry.bmp" },
         { "bomb", "../assets/items/bomb.bmp" },
         { "star", "../assets/items/star.bmp" }
         // Add more as needed
     };
 
-    inline const std::array<std::string, 5> itemNames = {"dot", "cherries", "banana", "star", "bomb"};
-    inline constexpr std::array<double, 5> itemProbs = {0.25, 0.25, 0.25, 0.15, 0.10}; // dot, cherry, banana, star, bomb
+    inline constexpr int MAX_BOMB_COUNT = 5; // max bombs on screen at once
+    inline constexpr int MIN_BOMB_FRAMES = 300;
+    inline constexpr int MAX_BOMB_FRAMES = 1800;
+    // NOTE: add bomb prob is controlled by itemProbs below
+
+    inline const std::array<std::string, 5> itemNames = {"apple", "cherries", "banana", "star", "bomb"};
+    inline constexpr std::array<double, 5> itemProbs = {0.30, 0.30, 0.30, 0.10, 0.005}; // dot, cherry, banana, star, bomb
     inline constexpr std::array<double, 5> itemScores = {1.0, 1.0, 1.0, 10.0, -5.0}; 
 
     // hawk animation
     inline constexpr int HAWK_ANIMATION_FRAMES = 6;
-    inline constexpr int FLAP_RATE = 20; //frames per flap, discrete control over animation speed
+    inline constexpr int FLAP_RATE = 7; //frames per flap, discrete control over animation speed
+    inline constexpr float HAWK_SPEED = 0.06; //cells per frame
+    inline constexpr int SNAKE_IMMUNITY_FRAMES = 600; // about 10 seconds at 60 fps
+    inline constexpr int SNAKE_BLINK_RATE = 30; //frames per blink, 0.5 seconds
     inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFiles = {
         "../assets/enemies/hawk_000.bmp",
         "../assets/enemies/hawk_001.bmp",

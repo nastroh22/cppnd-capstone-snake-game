@@ -41,7 +41,16 @@ namespace RenderUtils{
     };
 
     //minimal representation of all game items that Renderer can parse to render
-    struct Item {std::string name; int x; int y;};
+    struct Item {
+        std::string name; 
+        int x; 
+        int y;
+    };
+    struct Bomb : Item {
+        int frame_count = 0;
+        bool is_active = false;
+        int timeout = 0;
+    };
 
     // Try this approach of reading in textures directly from a map of key/filepath pairs
     template<typename T>

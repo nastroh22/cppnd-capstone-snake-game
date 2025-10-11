@@ -59,7 +59,7 @@ void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell, 
     size++;
   }
 
-  // Check if the snake has died.
+  // Check if the snake has died. Actually kind of odd to have here, should be in Game::Update
   int radius = 1; // make configurable? Hit box
   const auto isCollision = [radius,ai_location](SDL_Point const &pt) -> bool {
     return std::abs(ai_location.x - pt.x) <= radius &&
