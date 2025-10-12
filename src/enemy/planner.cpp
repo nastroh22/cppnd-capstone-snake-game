@@ -72,7 +72,7 @@ SDL_Point Planner::FollowLine() {
 // run in game loop ("chase")
 bool Planner::run() {
     while (_running) { 
-        SDL_Point move = getNextMove();
+        getNextMove();
         std::this_thread::sleep_for(std::chrono::milliseconds(5)); // avoid burning out
         publishMove(); // send planner move
         std::this_thread::sleep_for(std::chrono::milliseconds(5));

@@ -7,6 +7,7 @@
 #include <atomic>
 #include <optional>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "./utils.h"
 #include "./constants.h"
@@ -93,7 +94,4 @@ class Planner {
         float speed{Assets::HAWK_SPEED}; // Default is Orignal snake speed
         SDL_Point goal = SDL_Point{2,2}; // Location of the player
         std::shared_ptr<std::atomic<bool>> _shutdown_flag; // stop logic
-        SDL_Texture *_hawk_texture = nullptr; // store hawk texture for rendering
-
-
 };

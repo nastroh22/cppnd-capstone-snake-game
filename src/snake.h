@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <array>
 
-
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "constants.h"
 #include "utils.h"
@@ -15,11 +15,11 @@ class Snake {
   enum class Direction { kUp, kDown, kLeft, kRight };
 
   Snake(int grid_width, int grid_height, std::string name="Sammy")
-      : grid_width(grid_width),
-        grid_height(grid_height),
-        head_x(grid_width / 2),
+      : head_x(grid_width / 2),
         head_y(grid_height / 2),
-        name(name) 
+        name(name),
+        grid_width(grid_width),
+        grid_height(grid_height)
         {
           std::cout << "Creating Snake Object for " << name <<std::endl;
           // For Safety, init the snake textures with NUll ptrs, user must explicitly call InitTextures

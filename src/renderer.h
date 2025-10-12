@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <array>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "snake.h"
@@ -30,8 +31,9 @@ class Renderer {
  private:
   SDL_Window *sdl_window;
   SDL_Renderer *sdl_renderer;
-  SDL_Texture *sdl_texture;
-
+  
+  // Cleanup: No Longer Used
+  // SDL_Texture *sdl_texture;
   // std::vector<SDL_Texture*> food_textures;
   // SDL_Texture *hawk_texture; //enemy texture
 
@@ -45,10 +47,10 @@ class Renderer {
   int _prev_x = 0;
   int _hawk_idx = 0;
 
-  //reuse blocks
-  SDL_Rect _snake_block;
-  SDL_Rect _item_block;
-  SDL_Rect _hawk_block;
+  //reuse blocks (not using these)
+  // SDL_Rect _snake_block;
+  // SDL_Rect _item_block;
+  // SDL_Rect _hawk_block;
 
 
   const std::size_t screen_width;

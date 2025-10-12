@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <tuple>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "components.h"
@@ -158,7 +159,7 @@ public:
 };
 
 class CharacterSelectButton : public ImageButton {
-    int _characterIndex = 0; // index in character array
+    // int _characterIndex = 0; // index in character array (not using)
     std::string _characterName; // or simply use the label
     public:
     CharacterSelectButton(SDL_Renderer* renderer, int char_index, SDL_Rect rect)
@@ -270,7 +271,7 @@ class MainMenu : public Menu {
     int _theme = 0; // 0 for sammy, 1 for sandy
     SDL_Renderer* _renderer;  // going to store a copy here only so can do the setTheme effect
     std::vector<SDL_Point> path;
-    int _next_path_point = 0;
+    size_t _next_path_point = 0;
     int _path_direction = 1;
 
     SDL_Texture* _sammyTexture = nullptr; // texture for character image
@@ -421,7 +422,7 @@ class PlayerEntryMenu : public Menu {
     std::string _playerName = PlayerConst.DEFAULT_PLAYER_NAME; 
     std::unique_ptr<DynamicWindow> _textEntry; 
     Uint32 _lastToggleTime = 0;
-    bool cursor_visible = true;
+    // bool cursor_visible = true; // not using
     // Window _text_entry;
 };
 
@@ -445,7 +446,7 @@ class ScoreMenu : public Menu {
 class CharacterMenu : public Menu {
 
     std::string _selectedCharacter = CHARACTER_NAMES[0]; // default
-    int _num_characters = 0;
+    // int _num_characters = 0; // not used
     std::vector<SDL_Rect> _characterRects;
 
     public:
@@ -497,23 +498,23 @@ class MenuManager {
     SDL_Renderer* _renderer = nullptr;
 
     Menu* _currentMenu = nullptr;
-    Menu* _prevMenu = nullptr; 
+    // Menu* _prevMenu = nullptr;  // Not Using
     MenuState _state = MenuState::MAIN_MENU;
-    MenuState _prevState = MenuState::NONE; // should help coordinating async
+    // MenuState _prevState = MenuState::NONE; // should help coordinating async
     std::string _playerName = PlayerConst.DEFAULT_PLAYER_NAME; 
     std::string _selectedCharacter = CHARACTER_NAMES[0]; //default to Sammy
 
-    bool main_theme_sammy = true; // 0 for sammy theme, 1 for cindy theme
+    // bool main_theme_sammy = true; // 0 for sammy theme, 1 for cindy theme ( not using )
     bool _launchPlanner; // flag to start planner when return to main menu
 
     public:
 
     explicit MenuManager(SDL_Renderer* renderer) : //note to self: using "explicit"?
-        _renderer(renderer),
         mainMenu(std::make_unique<MainMenu>(renderer)),
         scoreMenu(std::make_unique<ScoreMenu>(renderer)),
         nameInput(std::make_unique<PlayerEntryMenu>(renderer)),
-        characterMenu(std::make_unique<CharacterMenu>(renderer))
+        characterMenu(std::make_unique<CharacterMenu>(renderer)),
+        _renderer(renderer)
     {
         _currentMenu = mainMenu.get(); // entry
         // std::cout << "Main Pointer : " << mainMenu.get() << std::endl; //debug
@@ -601,8 +602,6 @@ class MenuManager {
 
         // a flag to make animation optional
         bool _shouldAnimate = MainConst.ANIMATE_MAIN_MENU; 
-    
-        bool _break = false;
 
         // animation state
         _launchPlanner = _shouldAnimate;
@@ -647,25 +646,21 @@ class MenuManager {
         //TODO: move these to utils
         // grow body (repurpose snake functions)
         auto init_body = [&snake, &body_size, &dummy_loc](
-                SDL_Point const head, int const vertical_offset=0, int const horizontal_offset=0)
+                SDL_Point const head, size_t const vertical_offset=0, size_t const horizontal_offset=0)
             {
             // init body in grid space, head should alreday be properly scaled
             snake.body.clear();
             SDL_Point prev_head_cell = head;
-            for (int i = 1; i < body_size+1; i++) {
-                SDL_Point curr_cell = {prev_head_cell.x - i*horizontal_offset, prev_head_cell.y - i*vertical_offset};
+            for (size_t i = 1; i < body_size+1; i++) {
+                SDL_Point curr_cell = {
+                    prev_head_cell.x - static_cast<int>(i*horizontal_offset), 
+                    prev_head_cell.y - static_cast<int>(i*vertical_offset)
+                };
                 snake.GrowBody();
                 snake.UpdateBody(curr_cell, prev_head_cell, dummy_loc);
                 prev_head_cell = curr_cell;
             }
             // std::cout << snake.body.size() << " Body Size After Init " << std::endl;
-        };
-
-        auto map_to_grid = [&](SDL_Point point) {
-            return SDL_Point{
-                static_cast<int>((point.x * kGridWidth)/kScreenWidth),
-                static_cast<int>((point.y * kGridHeight)/kScreenHeight)
-            };
         };
 
         auto map_to_screen = [&](SDL_Point point) {
@@ -735,10 +730,6 @@ class MenuManager {
                 next_point = goal;
                 _send = next_point;
                 cycler.setPosition(start.x, start.y);
-                // SDL_Point init_head = map_to_grid(start_copy);
-                SDL_Point grid_offset = map_to_grid(_charDims);
-                // std::cout << "Init Head Point: " << start.x << ", " <<  start.y << std::endl;
-                // std::cout << "Init Grid Offset: " << _charDims.x <<" " <<  grid_offset.x << ", " <<  grid_offset.y << std::endl;
                 snake.SetHead(start.x,start.y);
                 init_body(start, 0, 0); // reset body
                 snake.direction = Snake::Direction::kLeft; // reset direction
@@ -750,7 +741,7 @@ class MenuManager {
                 cycler.start(start.x, start.y); // set run flag to true
                 future = std::async(std::launch::async, &Planner::run, &cycler);
                 _launchPlanner = false;
-                std::cout << "Cycle Thread Launched " << _launchPlanner <<  std::endl;
+                // std::cout << "Menu Animation Thread Launched " << _launchPlanner <<  std::endl; // Debug
             }
 
             // Render Animation Step:

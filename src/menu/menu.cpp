@@ -3,6 +3,7 @@
 #include <algorithm> 
 #include <cassert>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "menu.h"
@@ -12,7 +13,6 @@
 // ***************************** Custom Button Behaviors *************************************************** //
 // following functions toggle the offset of the container's underlying Table
 MenuState ScoreDownButton::onClick(Menu* container) const {
-        std::cout << "ScoreDown Clicked again ? " << std::endl; //debug
         if (container) {
             container->toggleOffset(PageToggle::DOWN);
         } else {
@@ -111,13 +111,15 @@ MainMenu::MainMenu(SDL_Renderer* renderer)
         // animation effect
         SDL_Rect window_dims = _window->getDimensions();
         SDL_Rect button_dims = _buttons[_buttons.size()-1]->getDims(); // assuming all buttons same size
-        std::cout << "Which button for route ?? "; _buttons[_buttons.size()-1]->printLabel();
-        std::cout << "Window Dims: " << window_dims.x << " " << window_dims.y << " " << window_dims.w << " " << window_dims.h << std::endl;
-        std::cout << "Button Dims: " << button_dims.x << " " << button_dims.y << " " << button_dims.w << " " << button_dims.h << std::endl;
+
+        // Debugging Menu Animation
+        // std::cout << "Which button for route ?? "; _buttons[_buttons.size()-1]->printLabel();
+        // std::cout << "Window Dims: " << window_dims.x << " " << window_dims.y << " " << window_dims.w << " " << window_dims.h << std::endl;
+        // std::cout << "Button Dims: " << button_dims.x << " " << button_dims.y << " " << button_dims.w << " " << button_dims.h << std::endl;
         
 
         auto map_to_grid = [&](SDL_Point point) {
-            std::cout << "Map Constants: " << (kGridWidth/kScreenWidth) << " " << (kGridHeight/kScreenHeight) << std::endl;
+            // std::cout << "Map Constants: " << (kGridWidth/kScreenWidth) << " " << (kGridHeight/kScreenHeight) << std::endl; // debug
             return SDL_Point{
                 static_cast<int>((point.x * kGridWidth)/kScreenWidth),
                 static_cast<int>((point.y * kGridHeight)/kScreenHeight)
@@ -156,13 +158,6 @@ MainMenu::MainMenu(SDL_Renderer* renderer)
             start_bottom.y 
         };
 
-
-        // std::cout << "Screen Space Path" << std::endl;
-        // std::cout << "Start Point: " << start.x << " " << start.y << std::endl;
-        // std::cout << "Left Point: " << left.x << " " << left.y << std::endl;
-        // std::cout << "Right Point: " << right.x << " " << right.y << std::endl;
-        // std::cout << "End Point: " << end.x << " " << end.y << std::endl;
-
         path.reserve(4);
         path.emplace_back(start);
         path.emplace_back(left_top);
@@ -173,16 +168,17 @@ MainMenu::MainMenu(SDL_Renderer* renderer)
         path.emplace_back(right_bottom);
         path.emplace_back(start_bottom);
 
-
         for_each(path.begin(), path.end(), [&](auto &point) {point = map_to_grid(point);});
-        std::cout << "Grid Space Path" << std::endl;
-        std::cout << "Start Point: " << path[0].x << " " <<  path[0].y << std::endl;
-        std::cout << "Left Point: " <<  path[1].x << " " << path[1].y << std::endl;
-        std::cout << "Right Point: " <<  path[2].x << " " << path[2].y << std::endl;
-        std::cout << "End Point: " <<  path[3].x << " " << path[3].y << std::endl;
+       
+        // Debugging Menu Animation
+        // std::cout << "Grid Space Path" << std::endl;
+        // std::cout << "Start Point: " << path[0].x << " " <<  path[0].y << std::endl;
+        // std::cout << "Left Point: " <<  path[1].x << " " << path[1].y << std::endl;
+        // std::cout << "Right Point: " <<  path[2].x << " " << path[2].y << std::endl;
+        // std::cout << "End Point: " <<  path[3].x << " " << path[3].y << std::endl;
         // std::this_thread::sleep_for(std::chrono::seconds(5)); // pause for effect
         
-        // For Body Rendering it is better to updates in the reduced "grid" space
+        //NOTE: For Body Rendering it is better to updates in the reduced "grid space"
 
         // store Textures for animation
         _sammyTexture = RenderUtils::InitTexture(renderer, characterFileMap.at(static_cast<CharacterEnum>(0))[0]);    
@@ -233,7 +229,6 @@ void ScoreMenu::Render() {
 // TODO: again, can make a lot of this shared functionality more polymorphic
 void CharacterMenu::generateGridDimensions() 
 {
-    int grid_rows = (NUM_CHARACTERS + CharConst.NUM_COLUMNS - 1) / CharConst.NUM_COLUMNS; // ceiling division
      _characterRects.reserve(NUM_CHARACTERS);
     int const cell_width = (WINDOW_POSITION.w - (CharConst.NUM_COLUMNS + 1) * CharConst.BUTTON_PADDING_X) / CharConst.NUM_COLUMNS;
     int const cell_height = cell_width; // Default square cells

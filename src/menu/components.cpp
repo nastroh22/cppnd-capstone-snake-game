@@ -1,3 +1,4 @@
+#define SDL_MAIN_HANDLED
 #include "components.h"
 #include "SDL.h"
 
@@ -15,7 +16,7 @@ Text::Text(
         std::cerr << "Failed to load text texture." << std::endl;
     }
     SDL_QueryTexture(_text_texture, nullptr, nullptr, &_text_rect.w, &_text_rect.h);
-    std::cout << "Loaded Text: " << message_text << std::endl;
+    // std::cout << "Loaded Text: " << message_text << std::endl; // debug
 }
 void Text::display(SDL_Renderer *renderer, int x, int y) const
 {

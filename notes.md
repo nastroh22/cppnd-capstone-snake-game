@@ -46,7 +46,7 @@
 `brew install sdl2`
 * to find where library files are installed on your system run `brew list sdl2`
 * (likely in /opt/homebrew/Cellar)
-* Symlinks created atL
+* Symlinks created at
     - /opt/homebrew/include/SDL2 (header files)
     - 
 * `sdl2-config` to get compiler flags
@@ -71,6 +71,7 @@ https://wiki.libsdl.org/SDL3/APIByCategory
 - [cool free fonts](https://www.fontspace.com/category/arcade)
 - [sprite files](https://opengameart.org/)
 - [color palettes](https://colorswall.com/palette/3036)
+- [more colors](https://www.schemecolor.com/)
 
 
 ## useful command:

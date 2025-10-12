@@ -13,12 +13,16 @@
 #include "utils.h"
 #include "enemy/planner.h"
 #include "menu/menu.h"
+
+
+#define SDL_MAIN_HANDLED
+// #include <SDL.h>
 #include "SDL.h"
 
 
-enum class GameState { MENU, PLAYING, EXIT };
-
 int main() {
+
+  enum GameState { MENU, PLAYING, EXIT };
 
   GameState state = GameState::MENU;
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
@@ -46,7 +50,7 @@ int main() {
         if (start){ 
             state = GameState::PLAYING;
          } else {
-            std::cout << "Clean Exit? : " << std::endl;
+            // std::cout << "Clean Exit? : " << std::endl; // debug
             state = GameState::EXIT;
         }
         //TODO (?): let Menu go out of scope here
@@ -85,7 +89,7 @@ int main() {
           std::this_thread::sleep_for(std::chrono::milliseconds(500));
           planner.stop(); // std::cout << "Enemy thread is off: " << test << std::endl;
           //std::cout << "flag: " << std::boolalpha << shutdown_flag->load() << std::endl; // debug
-          bool test = f.get(); // TODO: this could be causing the bug ?
+          f.get(); 
           ScoreIO::Entry new_entry{Player, game.GetScore()};
           ScoreIO::save_score(new_entry);
         }

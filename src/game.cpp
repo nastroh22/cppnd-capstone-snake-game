@@ -2,6 +2,7 @@
 #include <memory>
 #include <optional>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "game.h"
 #include "constants.h"
@@ -11,16 +12,16 @@
 Game::Game(std::size_t grid_width, std::size_t grid_height, std::string characterName = "Sammy")
     : snake(grid_width, grid_height, characterName),
       engine(dev()),
-      random_real(0, 1),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)),
       bomb_timer(Assets::MIN_BOMB_FRAMES, Assets::MAX_BOMB_FRAMES),
+      random_real(0, 1),
       item_choice(Assets::itemProbs.begin(), Assets::itemProbs.end())
 {
   // TODO tempted to store queues as class variables
   _bombs.reserve(Assets::MAX_BOMB_COUNT);
   for (int i = 0; i < Assets::MAX_BOMB_COUNT; ++i){
-    _bombs.push_back({"bomb",0,0,0,false,0});
+    _bombs.emplace_back("bomb",0,0,0,false,0);
   }
   // at least one bomb to start
   _bombs[0].is_active = true; 
@@ -42,7 +43,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   Uint32 frame_duration;
   int frame_count = 0;
   bool running = true;
-  SDL_Point ai_location = SDL_Point{20,20}; // initialize to same as constructor
+  ai_location = SDL_Point{20,20}; // initialize to same as constructor
   PlaceItem(); // initial random location
 
 
@@ -77,11 +78,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     }
 
     // SENDS player loc to AI, giving it time to calc next move
-    int send_x = static_cast<int>(snake.head_x);
-    int send_y = static_cast<int>(snake.head_x);
-    publisherq->receive(std::move(
-      SDL_Point{static_cast<int>(snake.head_x), 
-                static_cast<int>(snake.head_y)}));
+    SDL_Point temp = SDL_Point{static_cast<int>(snake.head_x), static_cast<int>(snake.head_y)};
+    publisherq->receive(std::move(temp));
     
     // If the time for this frame is too small (i.e. frame_duration is
     // smaller than the target ms_per_frame), delay the loop to

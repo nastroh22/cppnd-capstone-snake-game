@@ -15,7 +15,9 @@
 #include <optional>
 #include <atomic>
 #include <memory>
+#include <condition_variable>
 
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 
 
@@ -47,10 +49,14 @@ namespace RenderUtils{
         int y;
     };
     struct Bomb : Item {
-        int frame_count = 0;
-        bool is_active = false;
-        int timeout = 0;
+    int frame_count = 0;
+    bool is_active = false;
+    int timeout = 0;
+
+    Bomb(std::string name, int x, int y, int frame_count, bool active, int timeout)
+        : Item{name, x, y}, frame_count(frame_count), is_active(active), timeout(timeout) {}
     };
+
 
     // Try this approach of reading in textures directly from a map of key/filepath pairs
     template<typename T>
@@ -247,6 +253,7 @@ namespace ScoreIO{
 
     inline void save_score(Entry& new_entry){
         // replace spaces with underscores for file storage
+        new_entry.name=StringUtils::strip(new_entry.name);
         StringUtils::replace(new_entry.name, " ", "_");
         std::vector<Entry> entries = load_entries();
         entries.push_back(new_entry);
@@ -293,7 +300,7 @@ public:
         _cond1.wait(lock, [this] { 
             return (!_messages.empty() || _shutdown_flag->load());}); // wait until not empty or shutdown is true
         if (_shutdown_flag->load()){
-            std::cout << "Shutdown in send q received? " << _shutdown_flag.get() << std::endl;
+            // std::cout << "Shutdown in send q received? " << _shutdown_flag.get() << std::endl; // debug
             _cond2.notify_all();
             return std::nullopt;
         }
@@ -327,8 +334,8 @@ public:
     };
 
     void shutdown(){
-        // std::lock_guard<std::mutex> lock(_mutex);
-        // _shutdown_flag->store(true); // redundant I think 
+        std::lock_guard<std::mutex> lock(_mutex);
+        _shutdown_flag->store(true); // redundant I think 
         _messages.clear();
         _cond1.notify_all();
         _cond2.notify_all();
@@ -339,8 +346,8 @@ private:
     std::deque<T> _messages;
     std::condition_variable _cond1;
     std::condition_variable _cond2;
-    size_t _maxSize = 5;
     std::shared_ptr<std::atomic<bool>> _shutdown_flag;
+    size_t _maxSize = 5;
 
 };
 

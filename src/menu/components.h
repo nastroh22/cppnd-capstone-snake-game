@@ -1,4 +1,5 @@
 #pragma once
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "./utils.h"
 #include "./constants.h"
@@ -81,7 +82,7 @@ const SDL_Rect SCORE_DOWN_BUTTON_RECT = {
 
 // Generic Text Object, based on youtube tutorial. Nice pattern, reusable for buttons.
 class Text {
-    SDL_Color _color = DEFAULT_TEXT_COLOR; // default color
+
     public:
         Text(SDL_Renderer *renderer,const std::string &font_path, int font_size, const std::string &message_text, SDL_Color color);
         void loadFont(SDL_Renderer *renderer,const std::string &font_path, int font_size);
@@ -123,6 +124,7 @@ class Text {
         SDL_Texture *_text_texture;
         mutable SDL_Rect _text_rect = {0,0,20,20}; // for positioning text, mutable so that display can be const
         TTF_Font *_font = nullptr;
+        SDL_Color _color = DEFAULT_TEXT_COLOR; // default color
 };
 
 // **************** Window Compoenents ********************************************************
@@ -131,8 +133,8 @@ class Window {
         SDL_Rect _windowRect; // for positioning button
         SDL_Color _windowColor; // for button color
         SDL_Color _borderColor; // could make customizable
-        std::unique_ptr<Text> _title; // unique pointer now so can dynamically change its proeprties at runtiem
         int _title_offset;
+        std::unique_ptr<Text> _title; // unique pointer now so can dynamically change its proeprties at runtime
         int _text_x, _text_y; // for text positioning
         bool _shouldUpdate = false;
         // Text _content; // could be vector of texts for multiple lines
@@ -151,7 +153,7 @@ class Window {
                             _title_offset(title_offset),
                             _title(std::make_unique<Text>(renderer, Assets::fontMap.at(font_name), font_size, title_text, text_color)) {};
         
-        ~Window() = default; // will call _text destructor by default
+        virtual ~Window() = default; // will call _text destructor by default
         
         DISABLE_COPY_ENABLE_MOVE(Window);
 
@@ -163,7 +165,7 @@ class Window {
         void setX(int x) {_text_x = x;}
         void setY(int y) {_text_y = y;}
         void setBorderColor(SDL_Color color) {_borderColor = color;}
-        void setWindowColor(SDL_Color color) {_windowColor = color; std::cout << "Setting window color" << std::endl;}
+        void setWindowColor(SDL_Color color) {_windowColor = color;} //std::cout << "Setting window color" << std::endl; // debug
         
         int getX() const {return _text_x;}
         int getY() const {return _text_y;}
@@ -209,11 +211,11 @@ class DynamicWindow : public Window {
                                 _cellText(text) 
                     {
                         centerText();
-                        std::cout << "Cell created: " << text << " " <<  _text_y << _text_x <<std::endl;
+                        // std::cout << "Cell created: " << text << " " <<  _text_y << _text_x <<std::endl; // debug
                     };
-        ~DynamicWindow() = default; // will call _text destructor by default
+        ~DynamicWindow() override = default; // will call _text destructor by default
         DISABLE_COPY_ENABLE_MOVE(DynamicWindow);
-        virtual void Render(SDL_Renderer* renderer) override;
+        void Render(SDL_Renderer* renderer) override;
         void UpdateText(const std::string &new_text) {_cellText = new_text; _shouldUpdate = true;}
         // ?? TODO: either reduce Text size (if goes out of bounds or replace with ... and return option for player to view it)
         // or enforce a limit on text length when updating
@@ -228,14 +230,14 @@ enum PageToggle {
 
 class Table  {
     // A Grid of Cells with Dynamic Text (for loading/saving)
-    int const _rows;
-    int const _cols;
     SDL_Rect const _tableRect; 
     SDL_Color const _cellColor; 
     SDL_Color const _cellBorderColor; 
     SDL_Color const _textColor;
     int const _textFontSize = 24; 
     std::string const _textFontName;
+    int const _rows;
+    int const _cols;
     std::vector<std::vector<DynamicWindow>> gridSpec;
     std::vector<std::vector<std::string>> gridData;
     int _offset = 0; //for scrolling
@@ -297,16 +299,18 @@ enum class MenuState { // Buttons tied to MenuStates
 class Button {
 
 protected:
-    std::unique_ptr<Text> _text;
-    const SDL_Rect _buttonRect; // for positioning button
-    SDL_Color _buttonColor; // for button color (un-const for theme switching)
+
     const MenuState _return_state = MenuState::NONE; // default state
+    SDL_Color _buttonColor; // for button color (un-const for theme switching)
+    const SDL_Rect _buttonRect; // for positioning button
     SDL_Color _borderColor; // non-const to enable hover effect
     SDL_Color _borderColorDefault; // to revert back on un-hover
+    SDL_Color _hover_color;
+    std::unique_ptr<Text> _text;
+
     int _borderThickness = 2; // could make customizable
     bool _freeze_border = false; // to keep border on selected button
     int _textX, _textY; // for text positioning
-    SDL_Color _hover_color;
 
 
 // I think the protected constructor pattern works to make sure no abstract button can be created // TODO re-use for "Menu"

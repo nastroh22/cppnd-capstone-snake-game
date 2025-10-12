@@ -5,6 +5,8 @@
 #include <string>
 #include <array>
 #include <iostream>
+
+#define SDL_MAIN_HANDLED
 #include "SDL.h"
 #include "SDL_ttf.h"
 
@@ -17,6 +19,7 @@ constexpr std::size_t kScreenWidth{640};
 constexpr std::size_t kScreenHeight{640};
 constexpr std::size_t kGridWidth{32};
 constexpr std::size_t kGridHeight{32};
+constexpr int dummy = 0;
 
 
 /* NAMED COLOR THEMES (can of course add whatever you'd like!)
@@ -202,7 +205,7 @@ struct PlayerEntryConstants {
     int NAME_TEXT_FONT_SIZE = 32;
     const std::string NAME_TEXT_FONT = "comic_sans";
 
-    const int CURSOR_BLINK_INTERVAL_MS = 500;
+    const Uint32 CURSOR_BLINK_INTERVAL_MS = 500;
 };
 
 
