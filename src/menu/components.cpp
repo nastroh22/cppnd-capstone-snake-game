@@ -40,7 +40,7 @@ void Text::displayDynamic(SDL_Renderer *renderer, int x, int y, const std::strin
 
 void Text::loadFont(SDL_Renderer *renderer, const std::string &font_path, int font_size)
 {
-    _font = TTF_OpenFont(font_path.c_str(), font_size);
+    _font = TTF_OpenFont(PathUtils::appendRoot(font_path).c_str(), font_size);
     if (!_font) {
         std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
     }

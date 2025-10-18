@@ -19,12 +19,11 @@ RUN update-alternatives \
 # RUN x86_64-w64-mingw32-g++ -v | grep -i Thread
 
 WORKDIR /app
-
-# Includes just the minimum needed to build, assets included later
 COPY src/ src/
 COPY CMakeLists.txt .
 COPY mingw_toolchain.cmake .
 COPY external/ external/
+COPY assets/ assets/
 
 RUN rm -rf build && mkdir build 
 WORKDIR /app/build

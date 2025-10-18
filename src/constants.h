@@ -279,8 +279,6 @@ inline void debug() {
     [=](){std::cout << "DEBUG CONSTANTS : " << ScoreConst.TABLE_FONT_NAME << std::endl;}();
 }
 
-
-
 /* Asset Files and Names
 ---------------------------------------------------------------------------------------------*/
 enum CharacterEnum {Sammy, Sandy}; // arbitrary, but consistent naming
@@ -293,16 +291,16 @@ constexpr int NUM_CHARACTER_TEXTURES = 3; // head, body, dead
 const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFileMap = 
 {
     {CharacterEnum::Sammy, {
-            "../assets/characters/snake_green_head.bmp", 
-            "../assets/characters/snake_green_blob.bmp", 
-            "../assets/characters/snake_green_xx.bmp"
+            "assets/characters/snake_green_head.bmp", 
+            "assets/characters/snake_green_blob.bmp", 
+            "assets/characters/snake_green_xx.bmp"
         }
     },
     {CharacterEnum::Sandy, 
         {
-            "../assets/characters/snake_yellow_head.bmp", 
-            "../assets/characters/snake_yellow_blob.bmp", 
-            "../assets/characters/snake_yellow_xx.bmp"
+            "assets/characters/snake_yellow_head.bmp", 
+            "assets/characters/snake_yellow_blob.bmp", 
+            "assets/characters/snake_yellow_xx.bmp"
         }
     }
 };
@@ -310,21 +308,21 @@ const std::unordered_map<CharacterEnum, std::array<std::string, 3>> characterFil
 namespace Assets{
 
     inline const std::unordered_map<std::string, std::string> fontMap = {
-        {"comic_sans", "../assets/fonts/comic_sans_ms.ttf"},
-        {"rocket", "../assets/fonts/rocket_command.otf"},
-        {"karmatic_arcade", "../assets/fonts/karmatic_arcade.ttf"},
-        {"game_played", "../assets/fonts/game_played.ttf"},
-        {"rocabe", "../assets/fonts/rocabe_trial_regular.otf"},
-        {"public_pixel", "../assets/fonts/public_pixel.ttf"},
-        {"dejavu_sans", "../assets/fonts/DejaVuSans.ttf"}
+        {"comic_sans", "assets/fonts/comic_sans_ms.ttf"},
+        {"rocket", "assets/fonts/rocket_command.otf"},
+        {"karmatic_arcade", "assets/fonts/karmatic_arcade.ttf"},
+        {"game_played", "assets/fonts/game_played.ttf"},
+        {"rocabe", "assets/fonts/rocabe_trial_regular.otf"},
+        {"public_pixel", "assets/fonts/public_pixel.ttf"},
+        {"dejavu_sans", "assets/fonts/DejaVuSans.ttf"}
     };
 
     inline const std::unordered_map<std::string, std::string> itemTextureMap = {
-        { "banana", "../assets/items/banana.bmp" },
-        { "apple", "../assets/items/green_apple.bmp" },
-        { "cherries", "../assets/items/cherry.bmp" },
-        { "bomb", "../assets/items/bomb.bmp" },
-        { "star", "../assets/items/star.bmp" }
+        { "banana", "assets/items/banana.bmp" },
+        { "apple", "assets/items/green_apple.bmp" },
+        { "cherries", "assets/items/cherry.bmp" },
+        { "bomb", "assets/items/bomb.bmp" },
+        { "star", "assets/items/star.bmp" }
         // Add more as needed
     };
 
@@ -344,24 +342,24 @@ namespace Assets{
     inline constexpr int SNAKE_IMMUNITY_FRAMES = 600; // about 10 seconds at 60 fps
     inline constexpr int SNAKE_BLINK_RATE = 30; //frames per blink, 0.5 seconds
     inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFiles = {
-        "../assets/enemies/hawk_000.bmp",
-        "../assets/enemies/hawk_001.bmp",
-        "../assets/enemies/hawk_002.bmp",
-        "../assets/enemies/hawk_003.bmp",
-        "../assets/enemies/hawk_004.bmp",
-        "../assets/enemies/hawk_006.bmp"
+        "assets/enemies/hawk_000.bmp",
+        "assets/enemies/hawk_001.bmp",
+        "assets/enemies/hawk_002.bmp",
+        "assets/enemies/hawk_003.bmp",
+        "assets/enemies/hawk_004.bmp",
+        "assets/enemies/hawk_006.bmp"
     };
     inline const std::array<std::string, HAWK_ANIMATION_FRAMES> hawkTextureFilesLeft = {
-        "../assets/enemies/hawkL_000.bmp",
-        "../assets/enemies/hawkL_001.bmp",
-        "../assets/enemies/hawkL_002.bmp",
-        "../assets/enemies/hawkL_003.bmp",
-        "../assets/enemies/hawkL_004.bmp",
-        "../assets/enemies/hawkL_006.bmp"
+        "assets/enemies/hawkL_000.bmp",
+        "assets/enemies/hawkL_001.bmp",
+        "assets/enemies/hawkL_002.bmp",
+        "assets/enemies/hawkL_003.bmp",
+        "assets/enemies/hawkL_004.bmp",
+        "assets/enemies/hawkL_006.bmp"
     };
 
-    //add more playable characters
-
-    // Future Extension: add more enemies. Make Configurable via "level state" variables.
+    // Future Extensions? 
+    //  1. add more enemies. Make Configurable via "level state" variables
+    //  2. add more playable characters
 
 }

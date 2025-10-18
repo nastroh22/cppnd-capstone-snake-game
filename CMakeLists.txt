@@ -93,8 +93,16 @@ get_target_property(opts SnakeGame LINK_OPTIONS)
 message(STATUS "Link options for SnakeGame: ${opts}")
 
 
-# add project root to target
-target_compile_definitions(SnakeGame PRIVATE PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}") # add project path
+# Copy the assets directory to the build output (next to the executable)
+add_custom_command(TARGET SnakeGame POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:SnakeGame>/assets
+)
+
+
+# # add project root to target (Not Using Anymore)
+# target_compile_definitions(SnakeGame PRIVATE PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}") # add project path
 
 
 

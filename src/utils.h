@@ -20,12 +20,63 @@
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
 
+//For finding project path across platforms
+#ifdef _WIN32
+    #include <windows.h>
+#elif __APPLE__
+    // macOS specific includes if needed
+    #include <mach-o/dyld.h>
+#elif __linux__
+    #include <unistd.h>
+    #include <limits.h>
+#endif
+
+/*********************  Path Loading Utility *******************************************/
+
+namespace PathUtils {
+
+    inline std::filesystem::path getExecutablePath() {
+        #ifdef _WIN32
+            char buffer[MAX_PATH];
+            GetModuleFileNameA(NULL, buffer, MAX_PATH);
+            return std::filesystem::path(buffer).parent_path();
+        #elif __APPLE__
+            char buffer[PATH_MAX];
+            uint32_t size = sizeof(buffer);
+            if (_NSGetExecutablePath(buffer, &size) == 0) {
+                return std::filesystem::path(buffer).parent_path();
+            } else {
+                std::cerr << "Buffer too small; need size " << size << std::endl;
+                return "";
+            }
+        #else
+            // For Linux and other OSes
+            char result[PATH_MAX];
+            ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+            if (count != -1) {
+                return std::filesystem::path(std::string(result, count)).parent_path();
+            } else {
+                std::cerr << "Failed to get executable path" << std::endl;
+                return "";
+            }
+        #endif
+    }
+
+    inline const std::filesystem::path exeDir = getExecutablePath();
+
+
+    inline std::string appendRoot(const std::string& relativePath) {
+        std::cout << "Executable Directory Test: " << exeDir << std::endl; // Debug
+        return (exeDir / relativePath).string();
+    }
+}
 
 /*********************  SDL Render Helpers *******************************************/
 namespace RenderUtils{
 
     inline SDL_Texture* InitTexture(SDL_Renderer* const renderer, const std::string& path) {
-        SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+
+        SDL_Surface* surface = SDL_LoadBMP(PathUtils::appendRoot(path).c_str());
         if (!surface) {
             std::cerr << "Failed to load BMP file: " << path  << " " << SDL_GetError() << std::endl;
             return nullptr;
@@ -39,7 +90,7 @@ namespace RenderUtils{
             std::cout << "Loaded Texture from " << path << std::endl;
         }
         SDL_FreeSurface(surface);
-        std::cout << "Texture Exists? " << std::filesystem::exists(path) << std::endl;
+        std::cout << "Texture Exists? " << std::filesystem::exists(PathUtils::appendRoot(path)) << std::endl; // Debug
         return texture;
     };
 
@@ -167,7 +218,7 @@ namespace ScoreIO{
     namespace fs = std::filesystem;
     // const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / "scores.txt"; // NOTE this turns out not to be a good idea, as it is not portable across systems
     // const fs::path PATH = "../assets/scores.txt"; // Use relative path for simplicity
-    inline std::string PATH  = "../assets/scores.txt";
+    inline std::string SCORE_PATH  = PathUtils::appendRoot("assets/scores.txt");
 
     struct Entry {
         std::string name;
@@ -198,11 +249,11 @@ namespace ScoreIO{
         //     }
         // } 
 
-        std::ifstream file(PATH);
+        std::ifstream file(SCORE_PATH);
         std::vector<std::vector<std::string>> scores;
         
         if (!file.is_open()) {
-            std::cerr << "Could not open score file: " << PATH << std::endl;
+            std::cerr << "Could not open score file: " << SCORE_PATH << std::endl;
             return {};
         }
 
@@ -225,21 +276,21 @@ namespace ScoreIO{
     // Overload to handle struct Entry
     inline std::vector<Entry> load_entries(){
 
-        if (!fs::exists(PATH)) {
+        if (!fs::exists(SCORE_PATH)) {
             // Create an empty file
-            std::ofstream file(PATH);
+            std::ofstream file(SCORE_PATH);
             if (!file) {
-                    std::cerr << "Failed to create score file at: " << PATH << "\n";
+                    std::cerr << "Failed to create score file at: " << SCORE_PATH << "\n";
             } else {
                 return {};
             }
         } 
 
-        std::ifstream file(PATH);
+        std::ifstream file(SCORE_PATH);
         std::vector<Entry> entries;
         
         if (!file.is_open()) {
-            std::cerr << "Could not open score file: " << PATH << std::endl;
+            std::cerr << "Could not open score file: " << SCORE_PATH << std::endl;
             return {};
         }
 
@@ -269,7 +320,7 @@ namespace ScoreIO{
         }
 
         // Save back to file (overwrite)
-        std::ofstream file(PATH, std::ios::trunc);  // `trunc` clears the file
+        std::ofstream file(SCORE_PATH, std::ios::trunc);  // `trunc` clears the file
         if (!file) {
             std::cerr << "Failed to open score file for writing.\n";
             return;

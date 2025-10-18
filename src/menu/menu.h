@@ -530,32 +530,37 @@ class MenuManager {
     std::string getCharacterSelection() const { return _selectedCharacter; }
 
     void switchMenu() {
+        // sleeping .1 of second for some smoothness on transitions
         if (_state == MenuState::NONE) { 
             return;
         }
         switch (_state){
             case MenuState::MAIN_MENU:
                 _currentMenu = mainMenu.get();
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 // std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::SCORE_MENU:
                 _currentMenu = scoreMenu.get();
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 // std::cout << "Switch: "<< _currentMenu << std::endl;
                 break;
             case MenuState::PLAYER_NAME:
-                _currentMenu = nullptr;
                 _currentMenu = nameInput.get();
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 break;
             case MenuState::PLAY:
                 // std::cout << "Switch Play: "<< _currentMenu << std::endl;
                 break;
             case MenuState::CHARACTER_MENU:
                 _currentMenu = characterMenu.get();
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 break;
             case MenuState::BACK:
                 _currentMenu->resetButtons();
                 _currentMenu = mainMenu.get();
                 _state = MenuState::MAIN_MENU; // in this simple menu, back always goes to main
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 break;
             case MenuState::QUIT:
                 _currentMenu = nullptr;
@@ -635,7 +640,7 @@ class MenuManager {
         cycler.stop(); // ensure in waiting state at init
 
         // reusable shutdown lambda for threads
-        auto shutdown_thread = [&]() {
+        auto shutdown_planner = [&]() {
             flag->store(true);
             cycler.stop();        // stop internal loop
             managerq->shutdown();  // flush queues
@@ -669,7 +674,6 @@ class MenuManager {
                 static_cast<int>((point.y * kScreenHeight)/kGridHeight)
             };
         };
-        
 
         while (running && _currentMenu) {
 
@@ -693,20 +697,20 @@ class MenuManager {
 
             // shutdown cycler if no longer at main
             if (_currentMenu != mainMenu.get() && cycler.is_running() && _shouldAnimate) {
-                shutdown_thread();
+                shutdown_planner();
                 // std::cout << "Cycle Thread Stopped " << cycler.is_running()  << std::endl;
             }
 
             // Finally, poll events
             while (SDL_PollEvent(&e)) {
-                if (e.type == SDL_QUIT) {
+                if (e.type == SDL_QUIT || _state == MenuState::QUIT) {
                     running = false; // exit menu (should exit anyway from nullptr)
+                    break;
                 }
                 _state = handleEvent(e);
-                if (_state == MenuState::QUIT) {
-                    running=false;
-                }
-                switchMenu();
+                switchMenu(); // captures button press
+                std::cout << "Menu State: " << static_cast<int>(_state) << std::endl;
+                std::cout << "Event: type=" << e.type << std::endl;
             }
             if (!running) {break;} // extra break flag
 
@@ -741,6 +745,7 @@ class MenuManager {
                 cycler.start(start.x, start.y); // set run flag to true
                 future = std::async(std::launch::async, &Planner::run, &cycler);
                 _launchPlanner = false;
+                flag->store(false);
                 // std::cout << "Menu Animation Thread Launched " << _launchPlanner <<  std::endl; // Debug
             }
 
@@ -826,16 +831,17 @@ class MenuManager {
                     block.h = _charDims.y;
                     SDL_RenderCopy(_renderer, mainMenu->getBodyTexture(), nullptr, &block);
                 }
-
-        
             };
             SDL_RenderPresent(_renderer);  // Update Screen
-            SDL_Delay(16); // ~60fps
+            SDL_Delay(20); // ~60fps
+
         }
+
 
         // extra safety for hard quit path:
         if (cycler.is_running()) {
-            shutdown_thread();
+            shutdown_planner();
+            std::this_thread::sleep_for(std::chrono::milliseconds(200)); // idk, saw a segfault once maybe this will help
         }
 
         return false; // default exit point, cycler and queues go out of scope 
