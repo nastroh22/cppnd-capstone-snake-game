@@ -36,8 +36,10 @@ RUN cmake -DCMAKE_TOOLCHAIN_FILE=../mingw_toolchain.cmake .. && make
 #  && make VERBOSE=1
 
 # Bundle exe and runtime libraries
+RUN rm -rf /app/bundle
 RUN mkdir -p /app/bundle && \
     cp /app/build/SnakeGame.exe /app/bundle/ && \
+    cp -r /app/build/assets /app/bundle/ && \
     cp /app/external/SDL2/bin/SDL2.dll /app/bundle/ && \
     cp /app/external/SDL2_ttf/bin/SDL2_ttf.dll /app/bundle/ && \
     cp /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libstdc++-6.dll /app/bundle/ && \

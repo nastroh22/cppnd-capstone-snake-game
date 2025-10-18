@@ -687,7 +687,6 @@ class MenuManager {
             // when should it publish new goal points?, signal telling when ?
             // checks length queue perhaps and when < 2, sends next point
 
-
             // captures moment of switching to main 
             if (_state == MenuState::MAIN_MENU && _shouldAnimate && !_launchPlanner) {
                 flag->store(false);
@@ -709,8 +708,8 @@ class MenuManager {
                 }
                 _state = handleEvent(e);
                 switchMenu(); // captures button press
-                std::cout << "Menu State: " << static_cast<int>(_state) << std::endl;
-                std::cout << "Event: type=" << e.type << std::endl;
+                // std::cout << "Menu State: " << static_cast<int>(_state) << std::endl;
+                // std::cout << "Event: type=" << e.type << std::endl;
             }
             if (!running) {break;} // extra break flag
 
