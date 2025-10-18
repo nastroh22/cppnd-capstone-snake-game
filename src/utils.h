@@ -39,6 +39,7 @@ namespace RenderUtils{
             std::cout << "Loaded Texture from " << path << std::endl;
         }
         SDL_FreeSurface(surface);
+        std::cout << "Texture Exists? " << std::filesystem::exists(path) << std::endl;
         return texture;
     };
 
@@ -164,7 +165,9 @@ namespace StringUtils{
 namespace ScoreIO{
     
     namespace fs = std::filesystem;
-    const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / "scores.txt";
+    // const fs::path PATH = fs::path(PROJECT_ROOT_PATH) / "assets" / "scores.txt"; // NOTE this turns out not to be a good idea, as it is not portable across systems
+    // const fs::path PATH = "../assets/scores.txt"; // Use relative path for simplicity
+    inline std::string PATH  = "../assets/scores.txt";
 
     struct Entry {
         std::string name;
@@ -182,15 +185,18 @@ namespace ScoreIO{
     //load score "vectors"
     inline std::vector<std::vector<std::string>> load_scores(){
 
-        if (!fs::exists(PATH)) {
-            // Create an empty file
-            std::ofstream file(PATH);
-            if (!file) {
-                    std::cerr << "Failed to create score file at: " << PATH << "\n";
-            } else {
-                return {};
-            }
-        } 
+        // std::cout << "Current working directory: " << fs::current_path() << "\n";
+        // TODO!! redo the filesystem stuff. doesn't work portably across systems
+        // if (!fs::exists(PATH)) {
+        //     // Create an empty file
+        //     std::ofstream file(PATH);
+        //     if (!file) {
+        //             std::cerr << "Failed to create score file at: " << PATH << "\n";
+        //             std::cout << "Current working directory: " << fs::current_path() << "\n";
+        //     } else {
+        //         return {};
+        //     }
+        // } 
 
         std::ifstream file(PATH);
         std::vector<std::vector<std::string>> scores;

@@ -1,5 +1,5 @@
 .github/**
-build
+build*
 CODEOWNERS
 .vscode
 src/ai/model.h
@@ -7,6 +7,12 @@ src/ai/model.cpp
 local/*
 assets/fonts/local/
 *.DS_Store
+.DS_Store
 .share/
 external/
 SDL2-2.32.6/*
+
+CppND-Capstone-Snake-Game.code-workspace
+Info.plist
+make-macOS-app.sh
+make-win64.sh

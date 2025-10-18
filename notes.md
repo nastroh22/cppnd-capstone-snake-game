@@ -67,6 +67,15 @@ message(STATUS "SDL2_FOUND = ${SDL2_FOUND}")
 https://wiki.libsdl.org/SDL3/APIByCategory
 
 
+## Build Project for Windows
+TODO:
+- Fix paths for moving to a new environment/system
+- clean up dockerfile, automate the creation of the "bundle folder"
+- make a similar (idnetical-ish) bundle for mac
+- move folder over to UTM and retry
+
+
+
 ## Resources:
 - [cool free fonts](https://www.fontspace.com/category/arcade)
 - [sprite files](https://opengameart.org/)
